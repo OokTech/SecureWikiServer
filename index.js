@@ -39,7 +39,7 @@ app.use(cookieParser())
 function checkAuthentication (req, res, next) {
   try {
     var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
-    var decoded = jwt.verify(data.token, key)
+    var decoded = jwt.verify(req.cookies.token, key)
     if (decoded) {
       return next()
     } else {
