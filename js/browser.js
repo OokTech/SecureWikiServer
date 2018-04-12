@@ -22,6 +22,7 @@ var name = 'unauthenticated'
 */
 var logout = function () {
   localStorage.removeItem('ws-token')
+  document.cookie = 'token=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   document.getElementById('logout').disabled = true
   document.getElementById('login').disabled = false
   document.getElementById('user').disabled = false
@@ -40,7 +41,9 @@ var login = function () {
       // do something to response
       if (this.responseText) {
         localStorage.setItem('ws-token', this.responseText)
-        document.cookie = 'token=' + this.responseText
+        var expires = new Date();
+        expires.setItem(expires.getTime() + 60*60*1000)
+        document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
         document.getElementById('logout').disabled = false
         document.getElementById('login').disabled = true
         document.getElementById('user').disabled = true
