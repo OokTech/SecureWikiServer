@@ -42,7 +42,7 @@ var login = function () {
       if (this.responseText) {
         localStorage.setItem('ws-token', this.responseText)
         var expires = new Date();
-        expires.setItem(expires.getTime() + 60*60*1000)
+        expires.setTime(expires.getTime() + 60*60*1000)
         document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
         document.getElementById('logout').disabled = false
         document.getElementById('login').disabled = true
