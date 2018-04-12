@@ -63,7 +63,7 @@ if (process.argv.length < 3) {
     var info = {level: level}
     // Create the password hash
     // Use 10 salt rounds for now (make it configurable later)
-    info.hash = bcrypt.hashSync(password, settings.saltRounds)
+    info.hash = bcrypt.hashSync(password, Number(settings.saltRounds))
     // Write the info file, only the current user can read or write the file.
     fs.writeFileSync(path.join(dir, 'info.hash'), JSON.stringify(info, '', 2), {mode: 0o600})
   }

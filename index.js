@@ -23,6 +23,7 @@ var bodyParser = require('body-parser')
 var jwt = require('jsonwebtoken')
 var bcrypt = require('bcrypt')
 var https = require('https')
+var cookieParser = require('cookie-parser')
 
 var settings = require('./LoadConfig.js')
 var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
@@ -33,8 +34,14 @@ var app = express()
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
+app.use(cookieParser())
 
-app.use('/wiki', wiki.router)
+function checkAuthentication (req, res, next) {
+  console.log('cookies: ', req.cookies)
+  return next()
+}
+
+app.use('/wiki', checkAuthentication, wiki.router)
 
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html')

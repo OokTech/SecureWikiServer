@@ -40,6 +40,7 @@ var login = function () {
       // do something to response
       if (this.responseText) {
         localStorage.setItem('ws-token', this.responseText)
+        document.cookie = 'token=' + this.responseText
         document.getElementById('logout').disabled = false
         document.getElementById('login').disabled = true
         document.getElementById('user').disabled = true
