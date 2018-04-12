@@ -1,0 +1,10 @@
+{
+  "filePathBase": "/home/inmysocks/Sync/OokTech/GitLab/SecureWiki/",
+  "serverKeyPath": "./domain.key",
+  "certPath": "./domain.crt",
+  "httpsPort": "8443",
+  "wssPort": "40510",
+  "tokenPrivateKeyPath": "./.ssh/id_rsa",
+  "tokenTTL": "1h",
+  "saltRounds": "10"
+}

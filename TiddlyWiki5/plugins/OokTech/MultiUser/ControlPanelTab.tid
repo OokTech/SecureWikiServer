@@ -1,0 +1,5 @@
+title: $:/plugins/OokTech/MultiUser/ControlPanelTab
+tags: $:/tags/ControlPanel
+caption: Node Settings
+
+<<tabs "[[$:/plugins/OokTech/MultiUser/AvailableWikisTab]][[$:/plugins/OokTech/MultiUser/ManualSettingsTab]][[$:/plugins/OokTech/MultiUser/ServerActionsTab]]" "$:/plugins/OokTech/MultiUser/AvailableWikisTab">>

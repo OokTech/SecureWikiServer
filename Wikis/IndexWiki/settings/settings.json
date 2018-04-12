@@ -1,0 +1,8 @@
+{
+  "wikis": {},
+  "ws-server": {
+    "host": "0.0.0.0",
+    "wssport": 40510,
+    "useExternalWSS": true
+  }
+}

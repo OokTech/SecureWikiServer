@@ -1,0 +1,64 @@
+<html>
+<style>
+.hide {
+  display: none;
+}
+</style>
+<script src='./js'></script>
+<h1>
+    Web Socket Example
+</h1>
+<div>
+  Websocket state: <span id='wsstate'>Disconnected</span>
+  <input type='button' onclick='connect()' id='connect' value='Connect'></input>
+  <input type='button' onclick='disconnect()' id='disconnect' value='Disconnect'></input>
+</div>
+<div>
+  Authentication state: <span id='authstate'>Unauthenticated</span>
+  <br>
+  Name: <input type="text" value="" id="user"></input>
+  <br>
+  Password: <input type="password" value="" id="pwd"></input>
+  <br>
+  <input type='button' onclick='login()' value='Login' id='login'></input>
+  <input type='button' onclick='logout()' value='Logout' id='logout' disabled></input>
+</div>
+<br>
+<br>
+<h2>
+  Send Message
+</h2>
+<input
+  type='text'
+  value=''
+  id='message'
+  style='width:100%'
+></input>
+
+<input
+  type='button'
+  onclick='sendMessage()'
+  value='Echo'
+  id='echo'
+  disabled
+></input>
+<input
+  type='button'
+  onclick='sendAnnouncement()'
+  value='Announce'
+  id='announce'
+  disabled
+></input>
+<br>
+Note: Only you see the echos, everyone connected sees announcements. If you are authenticated than it shows your name with what you say, otherwise it shows 'Unauthenticated'.
+
+<h2>
+  Messages
+</h2>
+<p
+  id='display'
+>
+    Nothing yet...
+</p>
+
+</html>

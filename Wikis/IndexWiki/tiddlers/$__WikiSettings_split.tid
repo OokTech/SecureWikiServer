@@ -1,0 +1,7 @@
+title: $:/WikiSettings/split
+type: application/json
+
+{
+  "wikis": "$:/WikiSettings/split/wikis",
+  "ws-server": "$:/WikiSettings/split/ws-server"
+}
