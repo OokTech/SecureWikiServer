@@ -37,8 +37,17 @@ app.use(bodyParser.urlencoded({extended:true}))
 app.use(cookieParser())
 
 function checkAuthentication (req, res, next) {
-  console.log('cookies: ', req.cookies)
-  return next()
+  try {
+    var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
+    var decoded = jwt.verify(data.token, key)
+    if (decoded) {
+      return next()
+    } else {
+      res.redirect('/')
+    }
+  } catch (e) {
+    res.redirect('/')
+  }
 }
 
 app.use('/wiki', checkAuthentication, wiki.router)
