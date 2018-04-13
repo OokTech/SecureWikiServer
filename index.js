@@ -108,8 +108,22 @@ var httpserver = https.createServer(options).listen(settings.wssPort)
 wsserver.init(httpserver, settings.wssPort)
 
 var messageHandlers = require('./js/websocketmessagehandlers.js')
+// Replace some message handlers to make it work better.
+messageHandlers.updateRoutes = function (data) {
+  // This is only usable on the root wiki!
+    if (data.wiki === 'RootWiki') {
+      // Then clear all the routes to the non-root wiki
+      wiki.tw.httpServer.clearRoutes();
+      // The re-add all the routes from the settings
+      // This reads the settings so we don't need to give it any arguments
+      //wiki.tw.httpServer.addOtherRoutes();
+    }
+}
+
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
 
 // We may have to wait for this part if the config stuff isn't loaded yet.
 wiki.addRoutes(wiki.tw.settings.wikis, '')
+
+console.log(wiki.tw.httpServer)
