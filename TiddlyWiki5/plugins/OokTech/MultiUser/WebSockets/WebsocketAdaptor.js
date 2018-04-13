@@ -145,6 +145,12 @@ if($tw.node) {
   Given a tiddler title and an array of existing filenames, generate a new legal filename for the title, case insensitively avoiding the array of existing filenames
   */
   WebsocketAdaptor.prototype.generateTiddlerBaseFilepath = function(title) {
+    if (title.startsWith('{')) {
+      var ending = title.indexOf('}');
+      // If ending is -1 than this just returns the title, otherwise it cuts
+      // off the prefix.
+      title = title.slice(ending+1)
+    }
     var baseFilename;
     // Check whether the user has configured a tiddler -> pathname mapping
     var pathNameFilters = this.wiki.getTiddlerText("$:/config/FileSystemPaths");
