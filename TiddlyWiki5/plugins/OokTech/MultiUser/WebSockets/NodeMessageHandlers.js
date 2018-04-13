@@ -630,7 +630,7 @@ if ($tw.node) {
       tidText['wikis'] = tidText['wikis'] || '$:/WikiSettings/split/wikis';
 
       $tw.wiki.addTiddler(new $tw.Tiddler({title:'$:/WikiSettings/split', text:tidText, type: 'application/json'}));
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText), type: 'application/json'}, wiki: ''}));
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: {title:'$:/WikiSettings/split', text:JSON.stringify(tidText), type: 'application/json'}, wiki: 'RootWiki'}));
 
       var tiddlerText = $tw.wiki.getTiddlerText('$:/WikiSettings/split/wikis')
 
@@ -663,9 +663,9 @@ if ($tw.node) {
       // Add the tiddler
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
       // Push changes out to the browsers
-      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields, wiki: ''}));
+      $tw.MultiUser.SendToBrowsers(JSON.stringify({type: 'makeTiddler', fields: tiddlerFields, wiki: 'RootWiki'}));
 
-      $tw.nodeMessageHandlers.saveSettings({wiki: ''});
+      $tw.nodeMessageHandlers.saveSettings({wiki: 'RootWiki'});
 
       // Then clear all the routes to the non-root wiki
       $tw.httpServer.clearRoutes();
