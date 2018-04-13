@@ -112,4 +112,4 @@ messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
 
 // We may have to wait for this part if the config stuff isn't loaded yet.
-wiki.addRoutes(wiki.tw.settings.wikis)
+wiki.addRoutes(wiki.tw.settings.wikis, '')
