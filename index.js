@@ -110,3 +110,6 @@ wsserver.init(httpserver, settings.wssPort)
 var messageHandlers = require('./js/websocketmessagehandlers.js')
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
+
+// We may have to wait for this part if the config stuff isn't loaded yet.
+wiki.router.addRoutesThing(wiki.tw.settings.wikis)
