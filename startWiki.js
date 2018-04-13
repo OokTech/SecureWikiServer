@@ -83,7 +83,7 @@ addBasicRoutes()
 
 wiki.tw.httpServer = {}
 
-wiki.tw.httpServer.updateRoutes = function () {
+wiki.tw.httpServer.addOtherRoutes = function () {
   console.log('OR HERE')
   wiki.addRoutes(wiki.tw.settings.wikis, '')
 }
