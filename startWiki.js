@@ -39,7 +39,7 @@ wiki.addRoutes = function (inputObject, prefix) {
         }
 
         // Make route handler
-        this.router.get(new RegExp('^\/' + fullName + '\/?$'), function(request, response, next) {
+        wiki.router.get(new RegExp('^\/' + fullName + '\/?$'), function(request, response, next) {
           // Make sure we have loaded the wiki tiddlers.
           // This does nothing if the wiki is already loaded.
           var exists = wiki.tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
@@ -60,7 +60,7 @@ wiki.addRoutes = function (inputObject, prefix) {
 
 
         // And add the favicon route for the child wikis
-        this.router.get(/^\/' + fullName + '\/favicon.ico$/, function(request,response,next) {
+        wiki.router.get(/^\/' + fullName + '\/favicon.ico$/, function(request,response,next) {
           response.writeHead(200, {"Content-Type": "image/x-icon"});
           var buffer = wiki.tw.wiki.getTiddlerText("{" + fullName + "}" + "$:/favicon.ico","");
           response.end(buffer,"base64");
@@ -71,7 +71,7 @@ wiki.addRoutes = function (inputObject, prefix) {
         // This needs to be a new variable or else the rest of the wikis at
         // this level will get the longer prefix as well.
         var nextPrefix = prefix===''?wikiName:prefix + '/' + wikiName;
-        this.addRoutesThing(inputObject[wikiName], nextPrefix);
+        wiki.addRoutesThing(inputObject[wikiName], nextPrefix);
       }
     })
   }
