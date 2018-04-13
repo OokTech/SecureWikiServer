@@ -83,14 +83,16 @@ addBasicRoutes()
 
 wiki.tw.httpServer = {}
 
+wiki.tw.httpServer.updateRoutes = function () {
+  console.log('OR HERE')
+  wiki.addRoutes(wiki.tw.settings.wikis, '')
+}
+
 wiki.tw.httpServer.clearRoutes = function () {
+  console.log('HERE')
   wiki.router = express.Router()
   addBasicRoutes()
   wiki.tw.httpServer.updateRoutes()
-}
-
-wiki.tw.httpServer.updateRoutes = function () {
-  wiki.addRoutes(wiki.tw.settings.wikis, '')
 }
 
 module.exports = wiki
