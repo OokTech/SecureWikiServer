@@ -291,21 +291,25 @@ if ($tw.node) {
 
   function buildSettings (tiddler, prefix) {
     var settings = {};
-    var object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
-    Object.keys(object).forEach(function (field) {
-      if (typeof object[field] === 'string' || typeof object[field] === 'number') {
-        if (String(object[field]).startsWith(prefix + '$:/WikiSettings/split')) {
-          // Recurse!
-          var newTiddler = $tw.wiki.getTiddler(prefix + object[field]);
-          settings[field] = buildSettings(newTiddler, prefix);
-        } else {
-          // Actual thingy!
-          settings[field] = object[field];
-        }
-      } else {
-        settings[field] = "";
+    if (tiddler) {
+      if (tiddler.fields) {
+        var object = (typeof tiddler.fields.text === 'string')?JSON.parse(tiddler.fields.text):tiddler.fields.text;
+        Object.keys(object).forEach(function (field) {
+          if (typeof object[field] === 'string' || typeof object[field] === 'number') {
+            if (String(object[field]).startsWith(prefix + '$:/WikiSettings/split')) {
+              // Recurse!
+              var newTiddler = $tw.wiki.getTiddler(prefix + object[field]);
+              settings[field] = buildSettings(newTiddler, prefix);
+            } else {
+              // Actual thingy!
+              settings[field] = object[field];
+            }
+          } else {
+            settings[field] = "";
+          }
+        });
       }
-    });
+    }
     return settings;
   }
 
@@ -572,7 +576,7 @@ if ($tw.node) {
         fs.mkdirSync(path.join(basePath, data.wikisFolder));
         console.log('Created Wikis Folder');
       } catch (e) {
-        console.log('Wikis Folder Exists', e);
+        console.log('Wikis Folder Exists');
       }
       // This is the path given by the person making the wiki, it needs to be
       // relative to the basePath

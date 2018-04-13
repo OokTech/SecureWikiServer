@@ -92,7 +92,6 @@ wiki.tw.httpServer.clearRoutes = function () {
   console.log('HERE')
   wiki.router = express.Router()
   addBasicRoutes()
-  wiki.tw.httpServer.updateRoutes()
 }
 
 module.exports = wiki

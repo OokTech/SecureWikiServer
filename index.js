@@ -111,13 +111,13 @@ var messageHandlers = require('./js/websocketmessagehandlers.js')
 // Replace some message handlers to make it work better.
 messageHandlers.updateRoutes = function (data) {
   // This is only usable on the root wiki!
-    if (data.wiki === 'RootWiki') {
-      // Then clear all the routes to the non-root wiki
-      wiki.tw.httpServer.clearRoutes();
-      // The re-add all the routes from the settings
-      // This reads the settings so we don't need to give it any arguments
-      //wiki.tw.httpServer.addOtherRoutes();
-    }
+  if (data.wiki === 'RootWiki') {
+    // Then clear all the routes to the non-root wiki
+    wiki.tw.httpServer.clearRoutes();
+    // The re-add all the routes from the settings
+    // This reads the settings so we don't need to give it any arguments
+    wiki.tw.httpServer.updateRoutes();
+  }
 }
 
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
