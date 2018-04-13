@@ -28,7 +28,7 @@ wiki.router.get('/favicon', function(request,response) {
   response.end(buffer,"base64");
 })
 
-wiki.router.prototype.addRoutesThing = function (inputObject, prefix) {
+wiki.addRoutes = function (inputObject, prefix) {
   if (typeof inputObject === 'object') {
     Object.keys(inputObject).forEach(function (wikiName) {
       if (typeof inputObject[wikiName] === 'string') {
@@ -39,7 +39,7 @@ wiki.router.prototype.addRoutesThing = function (inputObject, prefix) {
         }
 
         // Make route handler
-        this.get(new RegExp('^\/' + fullName + '\/?$'), function(request, response, next) {
+        this.router.get(new RegExp('^\/' + fullName + '\/?$'), function(request, response, next) {
           // Make sure we have loaded the wiki tiddlers.
           // This does nothing if the wiki is already loaded.
           var exists = wiki.tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
@@ -60,7 +60,7 @@ wiki.router.prototype.addRoutesThing = function (inputObject, prefix) {
 
 
         // And add the favicon route for the child wikis
-        this.get(/^\/' + fullName + '\/favicon.ico$/, function(request,response,next) {
+        this.router.get(/^\/' + fullName + '\/favicon.ico$/, function(request,response,next) {
           response.writeHead(200, {"Content-Type": "image/x-icon"});
           var buffer = wiki.tw.wiki.getTiddlerText("{" + fullName + "}" + "$:/favicon.ico","");
           response.end(buffer,"base64");
