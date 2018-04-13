@@ -1,5 +1,5 @@
 /*\
-title: $:/core/modules/commands/secure.js
+title: $:/core/modules/commands/externalserver.js
 type: application/javascript
 module-type: command
 
@@ -13,7 +13,7 @@ Serve tiddlers using a two-way websocket server over http
 "use strict";
 
 exports.info = {
-  name: "secure",
+  name: "externalserver",
   synchronous: true
 };
 
