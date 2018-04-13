@@ -23,7 +23,6 @@ var fs = require('fs')
 ServerSide.loadWiki = function (wikiName, wikiFolder) {
   // First make sure that the wiki is listed
   var listed = false;
-  console.log($tw.settings)
   if ((wikiName.indexOf('/') === -1 && $tw.settings.wikis[wikiName]) || wikiName === 'RootWiki') {
     listed = true;
   } else {
