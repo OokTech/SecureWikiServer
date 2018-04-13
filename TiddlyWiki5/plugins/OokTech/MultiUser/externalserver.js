@@ -50,7 +50,7 @@ if($tw.node) {
   };
 
   Command.prototype.execute = function() {
-    $tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
+    //$tw.ServerSide.loadWiki('RootWiki', $tw.boot.wikiPath);
     return null;
   };
 
