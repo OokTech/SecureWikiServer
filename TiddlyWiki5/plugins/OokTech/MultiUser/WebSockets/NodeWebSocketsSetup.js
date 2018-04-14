@@ -40,6 +40,7 @@ if ($tw.node) {
     This sets up the websocket server and attaches it to the $tw object
   */
   var setup = function () {
+    /*
     // Load the settings because it isn't working.
     // Get default Settings
     var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
@@ -50,7 +51,7 @@ if ($tw.node) {
     // Get user settings, if any
     var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
     $tw.loadSettings($tw.settings,userSettingsPath);
-
+    */
     // initialise the empty $tw.nodeMessageHandlers object. This holds the functions that
     // are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
