@@ -125,8 +125,10 @@ if ($tw.node) {
     var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
     // This makes the server and returns the actual port used
     if ($tw.settings['ws-server'].useExternalWSS !== 'true' || !$tw.settings['ws-server'].useExternalWSS) {
+      console.log('Use Internal Server')
       makeWSS();
     } else {
+      console.log('Use External Server')
       WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || WSS_SERVER_PORT;
       finishSetup();
     }
