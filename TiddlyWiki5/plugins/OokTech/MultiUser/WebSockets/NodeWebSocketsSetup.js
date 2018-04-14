@@ -19,7 +19,7 @@ $tw.nodeMessageHandlers object.
 
 exports.name = "websocket-server";
 exports.platforms = ["node"];
-exports.after = ["FileSystemMonitor"];
+exports.after = ["file-monitor"];
 exports.synchronous = true;
 
 // require the websockets module if we are running node
@@ -42,7 +42,7 @@ if ($tw.node) {
   var setup = function () {
     // Load the settings because it isn't working.
     // Get default Settings
-    var settings = {};
+    var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
     // Make sure that $tw.settings exists.
     $tw.settings = $tw.settings || {};
     // Add Settings to the global $tw.settings
