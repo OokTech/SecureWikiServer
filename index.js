@@ -114,5 +114,3 @@ wiki.tw.connections = wsserver.connections
 
 // We may have to wait for this part if the config stuff isn't loaded yet.
 wiki.addRoutes(wiki.tw.settings.wikis, '')
-
-console.log(wiki.tw.httpServer)
