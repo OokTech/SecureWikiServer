@@ -132,6 +132,7 @@ if ($tw.node) {
     }
 
     function finishSetup () {
+      console.log($tw.settings)
       if (!$tw.settings['ws-server'].useExternalWSS) {
         $tw.wss = new WebSocketServer({server: server});
         // Set the onconnection function
