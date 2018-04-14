@@ -40,18 +40,6 @@ if ($tw.node) {
     This sets up the websocket server and attaches it to the $tw object
   */
   var setup = function () {
-    /*
-    // Load the settings because it isn't working.
-    // Get default Settings
-    var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
-    // Make sure that $tw.settings exists.
-    $tw.settings = $tw.settings || {};
-    // Add Settings to the global $tw.settings
-    $tw.updateSettings($tw.settings, settings);
-    // Get user settings, if any
-    var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
-    $tw.loadSettings($tw.settings,userSettingsPath);
-    */
     // initialise the empty $tw.nodeMessageHandlers object. This holds the functions that
     // are used for each message type
     $tw.nodeMessageHandlers = $tw.nodeMessageHandlers || {};
@@ -75,12 +63,11 @@ if ($tw.node) {
     */
     var MakeWikiListTiddler = function () {
       var tiddlerFields = {
-        title: '{RootWiki}$:/plugins/OokTech/MultiUser/WikiList',
+        title: '$:/plugins/OokTech/MultiUser/WikiList',
         text: JSON.stringify($tw.settings.wikis, "", 2),
         type: 'application/json'
       };
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-      //$tw.syncadaptor.saveTiddler({fields: tiddlerFields}, 'RootWiki');
     }
 
     MakeWikiListTiddler();
@@ -135,29 +122,22 @@ if ($tw.node) {
     var WSS_SERVER_PORT = Number($tw.settings['ws-server'].port) + 1 || ServerPort + 1;
 
     var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
-    console.log($tw.settings)
     // This makes the server and returns the actual port used
-    if ($tw.settings['ws-server'].useExternalWSS !== 'true' || !$tw.settings['ws-server'].useExternalWSS) {
-      console.log('Use Internal Server')
+    if (!$tw.settings['ws-server'].useExternalWSS) {
       makeWSS();
     } else {
-      console.log('Use External Server')
       WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || WSS_SERVER_PORT;
       finishSetup();
     }
 
     function finishSetup () {
-      console.log($tw.settings)
-      if ($tw.settings['ws-server'].useExternalWSS !== 'true' || !$tw.settings['ws-server'].useExternalWSS) {
+      if (!$tw.settings['ws-server'].useExternalWSS) {
         $tw.wss = new WebSocketServer({server: server});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
       }
       // Put all the port and host info into a tiddler so the browser can use it
-      var tiddlerFields = {title: "{RootWiki}$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix};
-      console.log(tiddlerFields)
-      //$tw.syncadaptor.saveTiddler({fields: tiddlerFields}, 'RootWiki');
-      $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+      $tw.wiki.addTiddler(new $tw.Tiddler({title: "$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix}));
 
       // I don't know how to set up actually closing a connection, so this doesn't
       // do anything useful yet

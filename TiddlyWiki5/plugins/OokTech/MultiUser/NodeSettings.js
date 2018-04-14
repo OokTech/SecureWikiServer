@@ -120,8 +120,15 @@ if ($tw.node) {
       text: settingsString,
       type: 'application/json'
     };
+    var message = {
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: 'RootWiki',
+      source_connection: -1
+    };
+    $tw.nodeMessageHandlers.saveTiddler(message);
     //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-    $tw.syncadaptor.saveTiddler({fields: tiddlerFields}, 'RootWiki');
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split");
   }
@@ -143,8 +150,15 @@ if ($tw.node) {
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
+    var message = {
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: 'RootWiki',
+      source_connection: -1
+    };
+    $tw.nodeMessageHandlers.saveTiddler(message);
     //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
-    $tw.syncadaptor.saveTiddler({fields: tiddlerFields}, 'RootWiki');
   }
 
   startup();

@@ -22,7 +22,7 @@ for changes to files.
 /*global $tw: false */
 "use strict";
 
-exports.name = 'file-monitor';
+exports.name = 'FileSystemMonitor';
 exports.after = ["load-modules"];
 exports.platforms = ["node"];
 exports.synchronous = true;
