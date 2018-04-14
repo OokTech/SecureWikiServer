@@ -48,6 +48,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
     $tw.MultiUser.Wikis[wikiName].wikiPath = wikiFolder;
     $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
+    $tw.MultiUser.Wikis[wikiName].settingsPath = path.resolve(wikiFolder, 'settings');
     // Make sure it isn't loaded already
     if ($tw.MultiUser.Wikis[wikiName].State !== 'loaded') {
       $tw.MultiUser.Wikis[wikiName].State = 'loaded';
