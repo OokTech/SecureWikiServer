@@ -23,7 +23,7 @@ for changes to files.
 "use strict";
 
 exports.name = 'file-monitor';
-exports.after = ["node-settings"];
+exports.after = ["load-modules"];
 exports.platforms = ["node"];
 exports.synchronous = true;
 

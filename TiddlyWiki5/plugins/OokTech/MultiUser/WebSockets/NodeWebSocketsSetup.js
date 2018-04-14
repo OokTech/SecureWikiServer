@@ -19,7 +19,7 @@ $tw.nodeMessageHandlers object.
 
 exports.name = "websocket-server";
 exports.platforms = ["node"];
-exports.after = ["file-monitor"];
+exports.after = ["node-settings"];
 exports.synchronous = true;
 
 // require the websockets module if we are running node
