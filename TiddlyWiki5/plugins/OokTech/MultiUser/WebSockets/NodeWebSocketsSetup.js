@@ -42,7 +42,7 @@ if ($tw.node) {
   var setup = function () {
     // Load the settings because it isn't working.
     // Get default Settings
-    var settings = {}; //JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
+    var settings = JSON.parse($tw.wiki.getTiddlerText('$:/plugins/OokTech/MultiUser/ws-server-default-settings'));
     // Make sure that $tw.settings exists.
     $tw.settings = $tw.settings || {};
     // Add Settings to the global $tw.settings
