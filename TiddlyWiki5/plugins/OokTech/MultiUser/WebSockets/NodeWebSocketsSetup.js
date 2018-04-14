@@ -124,7 +124,7 @@ if ($tw.node) {
 
     var wikiPathPrefix = $tw.settings['ws-server'].wikiPathPrefix;
     // This makes the server and returns the actual port used
-    if (!$tw.settings['ws-server'].useExternalWSS) {
+    if ($tw.settings['ws-server'].useExternalWSS !== 'true' || !$tw.settings['ws-server'].useExternalWSS) {
       makeWSS();
     } else {
       WSS_SERVER_PORT = $tw.settings['ws-server'].wssport || WSS_SERVER_PORT;
@@ -133,13 +133,14 @@ if ($tw.node) {
 
     function finishSetup () {
       console.log($tw.settings)
-      if (!$tw.settings['ws-server'].useExternalWSS) {
+      if ($tw.settings['ws-server'].useExternalWSS !== 'true' || !$tw.settings['ws-server'].useExternalWSS) {
         $tw.wss = new WebSocketServer({server: server});
         // Set the onconnection function
         $tw.wss.on('connection', handleConnection);
       }
       // Put all the port and host info into a tiddler so the browser can use it
       var tiddlerFields = {title: "{RootWiki}$:/ServerIP", port: ServerPort, host: host, wss_port: WSS_SERVER_PORT, path_prefix: wikiPathPrefix};
+      console.log(tiddlerFields)
       //$tw.syncadaptor.saveTiddler({fields: tiddlerFields}, 'RootWiki');
       $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
 
