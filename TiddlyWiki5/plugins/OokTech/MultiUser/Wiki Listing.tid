@@ -36,7 +36,7 @@ Available Wikis:
 <ul>
   <$vars
     currentLevel='$:/WikiSettings/split/wikis'
-    PathPrefix={{$:/ServerIP!!path_prefix}}
+    PathPrefix={{$:/WikiSettings/split/ws-server!!path_prefix}}
   >
     <<thisMakeWikiListing>>
   </$vars>
