@@ -36,9 +36,11 @@ socket server, but it can be extended for use with other web socket servers.
     // Do all actions on startup.
     function setup() {
       $tw.Syncer.isDirty = false;
-      var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
+      //var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
+      var IPTiddler = $tw.wiki.getTiddlerText("$:/WikiSettings/split/ws-server");
       var IPAddress = window.location.hostname;
-      var WSSPort = IPTiddler.fields.wss_port;
+      //var WSSPort = IPTiddler.fields.wss_port;
+      var WSSPort = JSON.parse(IPAddress).wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://"
       $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
       $tw.socket.onopen = openSocket;
