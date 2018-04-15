@@ -40,7 +40,7 @@ socket server, but it can be extended for use with other web socket servers.
       var IPTiddler = $tw.wiki.getTiddlerText("$:/WikiSettings/split/ws-server");
       var IPAddress = window.location.hostname;
       //var WSSPort = IPTiddler.fields.wss_port;
-      var WSSPort = JSON.parse(IPAddress).wssport;
+      var WSSPort = JSON.parse(IPTiddler).wssport;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://"
       $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
       $tw.socket.onopen = openSocket;
