@@ -118,8 +118,8 @@ socket server, but it can be extended for use with other web socket servers.
     	$tw.wiki.addEventListener("change",function(changes) {
         // TODO test this a bit, using for (prop in obj) is supposed to be
         // faster than object.keys().forEach() and this part runs a lot.
-        //Object.keys(changes).forEach(function(tiddlerTitle) {
-        for (var tiddlerTitle in changes) {
+        Object.keys(changes).forEach(function(tiddlerTitle) {
+        //for (var tiddlerTitle in changes) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
               // console.log('Modified/Created Tiddler');
@@ -131,9 +131,11 @@ socket server, but it can be extended for use with other web socket servers.
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName});
               $tw.socket.send(message);
             }
+          } else {
+            $tw.Syncer.isDirty = false;
           }
-        //});
-        }
+        });
+        //}
     	});
       /*
         Below here are skeletons for adding new actions to existing hooks.

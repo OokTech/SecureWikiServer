@@ -109,10 +109,10 @@ if ($tw.node) {
         globalSettings[key] = localSettings[key];
       }
     });
-    CreateSettingsTiddlers();
+    //CreateSettingsTiddlers();
   }
 
-  function CreateSettingsTiddlers () {
+  $tw.CreateSettingsTiddlers = function () {
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
@@ -120,6 +120,7 @@ if ($tw.node) {
       text: settingsString,
       type: 'application/json'
     };
+    /*
     var message = {
       tiddler: {
         fields: tiddlerFields
@@ -128,7 +129,8 @@ if ($tw.node) {
       source_connection: -1
     };
     $tw.nodeMessageHandlers.saveTiddler(message);
-    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    */
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
     doThisLevel($tw.settings, "$:/WikiSettings/split");
   }
@@ -150,6 +152,7 @@ if ($tw.node) {
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
+    /*
     var message = {
       tiddler: {
         fields: tiddlerFields
@@ -158,7 +161,8 @@ if ($tw.node) {
       source_connection: -1
     };
     $tw.nodeMessageHandlers.saveTiddler(message);
-    //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
+    */
+    $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   }
 
   startup();

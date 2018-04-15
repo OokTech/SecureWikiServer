@@ -58,6 +58,18 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       // Recursively build the folder tree structure
       $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
 
+      // Update the settings tiddlers for the wiki
+      // TODO either only act when it is the root wiki or make this work with
+      // child wikis
+      $tw.CreateSettingsTiddlers();
+      // Add the tiddler that has the server info
+      var message = {
+        tiddler: $tw.ServerInfo,
+        wiki: wikiName,
+        source_connection: -1
+      };
+      $tw.nodeMessageHandlers.saveTiddler(message);
+
       // Watch the root tiddlers folder for chanegs
       $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, wikiName);
 
