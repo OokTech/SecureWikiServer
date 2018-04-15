@@ -62,7 +62,7 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
       // TODO either only act when it is the root wiki or make this work with
       // child wikis
       console.log('here')
-      $tw.CreateSettingsTiddlers();
+      $tw.CreateSettingsTiddlers(wikiName);
       // Add the tiddler that has the server info
       var message = {
         tiddler: $tw.ServerInfo,
