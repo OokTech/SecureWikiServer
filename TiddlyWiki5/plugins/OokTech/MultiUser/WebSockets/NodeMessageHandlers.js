@@ -252,6 +252,7 @@ if ($tw.node) {
       var path = require('path');
       var fs = require('fs');
     }
+    data.wiki = 'RootWiki';
     var prefix = '{'+data.wiki+'}';
     // Get first tiddler to start out
     var tiddler = $tw.wiki.getTiddler(prefix + '$:/WikiSettings/split');
@@ -263,6 +264,16 @@ if ($tw.node) {
       type: 'application/json'
     };
     // Add the tiddler
+    /*
+    var message = {
+      tiddler: {
+        fields: tiddlerFields
+      },
+      wiki: wiki,
+      source_connection: -1
+    };
+    $tw.nodeMessageHandlers.saveTiddler(message);
+    */
     $tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Push changes out to the browsers
     $tw.MultiUser.SendToBrowsers({type: 'makeTiddler', fields: tiddlerFields});
@@ -287,6 +298,7 @@ if ($tw.node) {
     $tw.settings = {};
     // Put the updated version in.
     $tw.updateSettings($tw.settings, JSON.parse(settings));
+    $tw.CreateSettingsTiddlers(data.wiki);
   }
 
   function buildSettings (tiddler, prefix) {
