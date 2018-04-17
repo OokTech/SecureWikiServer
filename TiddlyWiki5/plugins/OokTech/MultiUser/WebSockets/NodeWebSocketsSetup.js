@@ -46,13 +46,13 @@ if ($tw.node) {
     // Initialise connections array
     $tw.connections = [];
 
-    if (!$tw.settings) {
+    //if (!$tw.settings) {
       // Make sure that $tw.settings exists.
       $tw.settings = $tw.settings || {};
       // Get user settings, if any
       var userSettingsPath = path.join($tw.boot.wikiPath, 'settings', 'settings.json');
       $tw.loadSettings($tw.settings,userSettingsPath);
-    }
+    //}
 
     $tw.settings['ws-server'] = $tw.settings['ws-server'] || {};
     var ServerPort = Number($tw.settings['ws-server'].port) || 8080;

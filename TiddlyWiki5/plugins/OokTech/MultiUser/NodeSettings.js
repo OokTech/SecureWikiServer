@@ -113,7 +113,6 @@ if ($tw.node) {
 
   $tw.CreateSettingsTiddlers = function (wiki) {
     wiki = wiki === ''?'RootWiki':wiki;
-    console.log('first ', wiki)
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
@@ -127,7 +126,6 @@ if ($tw.node) {
   }
 
   function doThisLevel (inputObject, currentName, wiki) {
-    console.log('inner ', wiki)
     var currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if (typeof inputObject[property] === 'object') {
