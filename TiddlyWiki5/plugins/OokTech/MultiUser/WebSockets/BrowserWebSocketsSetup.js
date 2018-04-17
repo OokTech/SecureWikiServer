@@ -36,11 +36,9 @@ socket server, but it can be extended for use with other web socket servers.
     // Do all actions on startup.
     function setup() {
       $tw.Syncer.isDirty = false;
-      //var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
-      var IPTiddler = $tw.wiki.getTiddlerText("$:/WikiSettings/split/ws-server");
+      var IPTiddler = $tw.wiki.getTiddler("$:/ServerIP");
       var IPAddress = window.location.hostname;
-      //var WSSPort = IPTiddler.fields.wss_port;
-      var WSSPort = JSON.parse(IPTiddler).wssport || (JSON.parse(IPTiddler).port + 1);
+      var WSSPort = IPTiddler.fields.wss_port;
       var WSScheme = window.location.protocol=="https:"?"wss://":"ws://"
       $tw.socket = new WebSocket(WSScheme + IPAddress +":" + WSSPort);
       $tw.socket.onopen = openSocket;
@@ -120,8 +118,8 @@ socket server, but it can be extended for use with other web socket servers.
     	$tw.wiki.addEventListener("change",function(changes) {
         // TODO test this a bit, using for (prop in obj) is supposed to be
         // faster than object.keys().forEach() and this part runs a lot.
-        Object.keys(changes).forEach(function(tiddlerTitle) {
-        //for (var tiddlerTitle in changes) {
+        //Object.keys(changes).forEach(function(tiddlerTitle) {
+        for (var tiddlerTitle in changes) {
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
               // console.log('Modified/Created Tiddler');
@@ -133,11 +131,9 @@ socket server, but it can be extended for use with other web socket servers.
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName});
               $tw.socket.send(message);
             }
-          } else {
-            $tw.Syncer.isDirty = false;
           }
-        });
-        //}
+        //});
+        }
     	});
       /*
         Below here are skeletons for adding new actions to existing hooks.

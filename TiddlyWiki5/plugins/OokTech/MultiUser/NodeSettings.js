@@ -109,10 +109,10 @@ if ($tw.node) {
         globalSettings[key] = localSettings[key];
       }
     });
-    //CreateSettingsTiddlers();
+    CreateSettingsTiddlers();
   }
 
-  $tw.CreateSettingsTiddlers = function (wiki) {
+  function CreateSettingsTiddlers () {
     // Save the settings to a tiddler.
     var settingsString = JSON.stringify($tw.settings, null, 2);
     var tiddlerFields = {
@@ -120,27 +120,25 @@ if ($tw.node) {
       text: settingsString,
       type: 'application/json'
     };
-
     var message = {
       tiddler: {
         fields: tiddlerFields
       },
-      wiki: wiki,
+      wiki: 'RootWiki',
       source_connection: -1
     };
     $tw.nodeMessageHandlers.saveTiddler(message);
-
     //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
     // Split it into different things for each thingy
-    doThisLevel($tw.settings, "$:/WikiSettings/split", wiki);
+    doThisLevel($tw.settings, "$:/WikiSettings/split");
   }
 
-  function doThisLevel (inputObject, currentName, wiki) {
+  function doThisLevel (inputObject, currentName) {
     var currentLevel = {};
     Object.keys(inputObject).forEach( function (property) {
       if (typeof inputObject[property] === 'object') {
         // Call recursive function to walk through properties
-        doThisLevel(inputObject[property], currentName + '/' + property, wiki);
+        doThisLevel(inputObject[property], currentName + '/' + property);
         currentLevel[property] = currentName + '/' + property;
       } else {
         // Add it to this one.
@@ -152,16 +150,14 @@ if ($tw.node) {
       text: JSON.stringify(currentLevel, "", 2),
       type: 'application/json'
     };
-
     var message = {
       tiddler: {
         fields: tiddlerFields
       },
-      wiki: wiki,
+      wiki: 'RootWiki',
       source_connection: -1
     };
     $tw.nodeMessageHandlers.saveTiddler(message);
-
     //$tw.wiki.addTiddler(new $tw.Tiddler(tiddlerFields));
   }
 

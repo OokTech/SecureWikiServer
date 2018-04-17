@@ -48,7 +48,6 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
     $tw.MultiUser.Wikis[wikiName] = $tw.MultiUser.Wikis[wikiName] || {};
     $tw.MultiUser.Wikis[wikiName].wikiPath = wikiFolder;
     $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath = path.resolve(wikiFolder, 'tiddlers');
-    $tw.MultiUser.Wikis[wikiName].settingsPath = path.resolve(wikiFolder, 'settings');
     // Make sure it isn't loaded already
     if ($tw.MultiUser.Wikis[wikiName].State !== 'loaded') {
       $tw.MultiUser.Wikis[wikiName].State = 'loaded';
@@ -57,19 +56,6 @@ ServerSide.loadWiki = function (wikiName, wikiFolder) {
 
       // Recursively build the folder tree structure
       $tw.MultiUser.Wikis[wikiName].FolderTree = buildTree('.', $tw.MultiUser.Wikis[wikiName].wikiTiddlersPath, {});
-
-      // Update the settings tiddlers for the wiki
-      // TODO either only act when it is the root wiki or make this work with
-      // child wikis
-      console.log('here')
-      $tw.CreateSettingsTiddlers(wikiName);
-      // Add the tiddler that has the server info
-      var message = {
-        tiddler: $tw.ServerInfo,
-        wiki: wikiName
-      };
-      console.log(message)
-      $tw.nodeMessageHandlers.saveTiddler(message);
 
       // Watch the root tiddlers folder for chanegs
       $tw.MultiUser.WatchAllFolders($tw.MultiUser.Wikis[wikiName].FolderTree, wikiName);

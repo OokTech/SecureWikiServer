@@ -21,7 +21,12 @@ exports.platforms = ["node"];
 
 if($tw.node) {
 
-  var path = require("path");
+  var util = require("util"),
+    fs = require("fs"),
+    url = require("url"),
+    path = require("path"),
+    http = require("http"),
+    qs = require("querystring");
 
   // Commands that are just for the server
   $tw.ServerSide = require('$:/plugins/OokTech/MultiUser/ServerSide.js');
