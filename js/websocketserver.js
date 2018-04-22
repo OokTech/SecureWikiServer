@@ -59,10 +59,12 @@ var init = function (server, port) {
       try {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var decoded = jwt.verify(data.token, key)
+        console.log('decoded: ', decoded)
+        console.log(settings)
         // Special handling for the chat thing
-        /*if (decoded && data.messageType === 'announce') {
+        if (decoded && data.messageType === 'announce') {
           return true
-        } else */if (decoded.level) {
+        } else if (decoded.level) {
           settings = settings || {}
           settings.access = settings.access || {}
           settings.access.wikis = settings.access.wikis || {}
