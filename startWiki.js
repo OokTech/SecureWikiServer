@@ -47,7 +47,7 @@ var addBasicRoutes = function () {
   wiki.router.get('/', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkAuthorisation(response, fullName)
+    var authorised = checkAuthorisation(response, 'RootWiki')
     if (authorised) {
       // Load the wiki
       wiki.tw.ServerSide.loadWiki('RootWiki', wiki.tw.boot.wikiPath);
@@ -62,9 +62,14 @@ var addBasicRoutes = function () {
   })
 
   wiki.router.get('/favicon', function(request,response) {
-    response.writeHead(200, {"Content-Type": "image/x-icon"});
-    var buffer = wiki.tw.wiki.getTiddlerText("$:/favicon.ico","");
-    response.end(buffer,"base64");
+    // Add a check to make sure that the person logged in is authorised
+    // to open the wiki.
+    var authorised = checkAuthorisation(response, 'RootWiki')
+    if (authorised) {
+      response.writeHead(200, {"Content-Type": "image/x-icon"});
+      var buffer = wiki.tw.wiki.getTiddlerText("$:/favicon.ico","");
+      response.end(buffer,"base64");
+    }
   })
 
   wiki.addRoutes = function (inputObject, prefix) {
