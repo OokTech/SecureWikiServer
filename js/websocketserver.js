@@ -57,8 +57,11 @@ var init = function (server, port) {
   function authenticateMessage(data) {
     console.log(data)
     if (data.token) {
+      console.log("here")
       try {
+        console.log(1)
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
+        console.log(2)
         var decoded = jwt.verify(data.token, key)
         console.log('decoded: ', decoded)
         console.log(settings)
