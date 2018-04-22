@@ -6,5 +6,31 @@
   "wssPort": "40510",
   "tokenPrivateKeyPath": "./.ssh/id_rsa",
   "tokenTTL": "1h",
-  "saltRounds": "10"
+  "saltRounds": "10",
+  "access": {
+    "wikis": {
+      "RootWiki": {
+        "Guest": ["view"],
+        "Admin": ["view", "edit", "admin"]
+      },
+      "Bookmarks": {
+        "Admin": ["view", "edit", "admin"]
+      },
+      "Jed": {
+        "Admin": ["view", "edit", "admin"]
+      },
+      "Josh": {
+        "Admin": ["view", "edit", "admin"]
+      },
+      "Tasklist": {
+        "Admin": ["view", "edit", "admin"]
+      }
+    },
+    "actions": {
+      "view": ["browserTiddlerList", "test", "ping"],
+      "edit": ["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "cancelEditingTiddler"],
+      "admin": ["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki"],
+      "scripts": ["runScript"]
+    }
+  }
 }

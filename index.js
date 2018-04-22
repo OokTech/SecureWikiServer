@@ -41,6 +41,8 @@ function checkAuthentication (req, res, next) {
     var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
     var decoded = jwt.verify(req.cookies.token, key)
     if (decoded) {
+      // Add the decoded token to res object.
+      res.decoded = decoded
       return next()
     } else {
       res.redirect('/')
