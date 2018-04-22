@@ -76,10 +76,10 @@ var init = function (server, port) {
               console.log(levels)
               var allowed = false
               Object.keys(levels).forEach(function(level) {
-                console.log(level)
+                console.log(levels[level])
                 console.log(settings.access.actions)
                 console.log(data)
-                if (settings.access.actions[level].indexOf(data.messageType) !== -1) {
+                if (settings.access.actions[levels[level]].indexOf(data.messageType) !== -1) {
                   allowed = true
                 }
               })
