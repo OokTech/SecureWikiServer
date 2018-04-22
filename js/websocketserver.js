@@ -71,12 +71,12 @@ var init = function (server, port) {
           settings.access.wikis = settings.access.wikis || {}
           if (settings.access.wikis[data.wiki]) {
             console.log(3)
-            console.log(settings.access.wiki[data.wiki])
             console.log(decoded)
             console.log(data)
-            if (settings.access.wiki[data.wiki][decoded.level]) {
+            console.log(settings.access.wikis[data.wiki])
+            if (settings.access.wikis[data.wiki][decoded.level]) {
               console.log(4)
-              var levels = settings.access.wiki[data.wiki][decoded.level]
+              var levels = settings.access.wikis[data.wiki][decoded.level]
               var allowed = false
               Object.keys(levels).forEach(function(level) {
                 if (settings.actions[level].indexOf(data.messageType) !== -1) {
