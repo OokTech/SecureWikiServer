@@ -58,16 +58,13 @@ var init = function (server, port) {
   // have public actions, or different levels of authentication for different
   // actions.
   function authenticateMessage(data) {
-    console.log('1')
     if (data.token) {
-      console.log('2')
       try {
-        console.log('3')
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
-        console.log('4')
         var decoded = jwt.verify(data.token, key)
         console.log('decoded: ', decoded)
         console.log(settings)
+        console.log(data)
         // Special handling for the chat thing
         if (decoded && data.messageType === 'announce') {
           return true
