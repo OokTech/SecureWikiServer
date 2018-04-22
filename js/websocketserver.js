@@ -69,6 +69,7 @@ var init = function (server, port) {
           if (settings.access.wikis[data.wiki]) {
             if (settings.access.wiki[data.wiki][decoded.level]) {
               var levels = settings.access.wiki[data.wiki][decoded.level]
+              console.log(levels)
               var allowed = false
               Object.keys(levels).forEach(function(level) {
                 if (settings.actions[level].indexOf(data.messageType) !== -1) {
@@ -113,7 +114,7 @@ var init = function (server, port) {
         if (typeof messageHandlers[eventData.messageType] === 'function') {
           // Check authorisation
           var authorised = authenticateMessage(eventData)
-          if (authorised) {
+          if (authorised === true) {
             messageHandlers[eventData.messageType](eventData)
           }
           // If unauthorised just ignore it.
