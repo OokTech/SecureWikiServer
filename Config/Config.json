@@ -1,7 +1,7 @@
 {
-  "filePathBase": "/home/inmysocks/Sync/OokTech/GitLab/SecureWiki/",
-  "serverKeyPath": "./domain.key",
-  "certPath": "./domain.crt",
+  "filePathBase": "homedir",
+  "serverKeyPath": "./ookprivate.key",
+  "certPath": "./ooktest.crt",
   "httpsPort": "8443",
   "wssPort": "40510",
   "tokenPrivateKeyPath": "./.ssh/id_rsa",
