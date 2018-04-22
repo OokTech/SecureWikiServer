@@ -14,6 +14,7 @@
 
 // Require needed libraries
 var ws = require('ws')
+var path = require('path')
 
 var settings = require('../LoadConfig.js')
 
@@ -55,14 +56,9 @@ var init = function (server, port) {
   // have public actions, or different levels of authentication for different
   // actions.
   function authenticateMessage(data) {
-    console.log(data)
     if (data.token) {
-      console.log("here")
-      console.log(path.join(require('os').homedir(), '.ssh/id_rsa'))
       try {
-        console.log(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
-        console.log(2)
         var decoded = jwt.verify(data.token, key)
         console.log('decoded: ', decoded)
         console.log(settings)
