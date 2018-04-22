@@ -113,6 +113,7 @@ var init = function (server, port) {
         eventData.source_connection = thisIndex
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.messageType] === 'function') {
+          console.log(eventData)
           // Check authorisation
           var authorised = authenticateMessage(eventData)
           if (authorised === true) {
