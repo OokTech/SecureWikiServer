@@ -16,6 +16,7 @@
 var ws = require('ws')
 var path = require('path')
 var fs = require('fs')
+var jwt = require('jsonwebtoken')
 
 var settings = require('../LoadConfig.js')
 
