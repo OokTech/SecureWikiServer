@@ -58,6 +58,7 @@ var init = function (server, port) {
     console.log(data)
     if (data.token) {
       console.log("here")
+      console.log(path.join(require('os').homedir(), '.ssh/id_rsa'))
       try {
         console.log(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
