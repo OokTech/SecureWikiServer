@@ -62,20 +62,18 @@ var init = function (server, port) {
       try {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var decoded = jwt.verify(data.token, key)
-        console.log('decoded: ', decoded)
-        console.log(settings)
-        console.log(data)
         // Special handling for the chat thing
         if (decoded && data.messageType === 'announce') {
-          console.log(1)
           return true
         } else if (decoded.level) {
-          console.log(2)
           settings = settings || {}
           settings.access = settings.access || {}
           settings.access.wikis = settings.access.wikis || {}
           if (settings.access.wikis[data.wiki]) {
             console.log(3)
+            console.log(settings.access.wiki[data.wiki])
+            console.log(decoded)
+            console.log(data)
             if (settings.access.wiki[data.wiki][decoded.level]) {
               console.log(4)
               var levels = settings.access.wiki[data.wiki][decoded.level]
