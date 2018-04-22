@@ -67,13 +67,17 @@ var init = function (server, port) {
         console.log(data)
         // Special handling for the chat thing
         if (decoded && data.messageType === 'announce') {
+          console.log(1)
           return true
         } else if (decoded.level) {
+          console.log(2)
           settings = settings || {}
           settings.access = settings.access || {}
           settings.access.wikis = settings.access.wikis || {}
           if (settings.access.wikis[data.wiki]) {
+            console.log(3)
             if (settings.access.wiki[data.wiki][decoded.level]) {
+              console.log(4)
               var levels = settings.access.wiki[data.wiki][decoded.level]
               var allowed = false
               Object.keys(levels).forEach(function(level) {
