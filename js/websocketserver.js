@@ -55,6 +55,7 @@ var init = function (server, port) {
   // have public actions, or different levels of authentication for different
   // actions.
   function authenticateMessage(data) {
+    console.log(data)
     if (data.token) {
       try {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
@@ -113,8 +114,8 @@ var init = function (server, port) {
         eventData.source_connection = thisIndex
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.messageType] === 'function') {
-          console.log(eventData)
-          console.log(settings)
+          //console.log(eventData)
+          //console.log(settings)
           // Check authorisation
           var authorised = authenticateMessage(eventData)
           if (authorised === true) {
