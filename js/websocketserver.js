@@ -114,6 +114,7 @@ var init = function (server, port) {
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.messageType] === 'function') {
           console.log(eventData)
+          console.log(settings)
           // Check authorisation
           var authorised = authenticateMessage(eventData)
           if (authorised === true) {
