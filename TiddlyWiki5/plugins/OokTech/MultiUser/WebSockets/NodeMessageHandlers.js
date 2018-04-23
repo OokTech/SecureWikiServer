@@ -69,6 +69,9 @@ if ($tw.node) {
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
     })
+    if (data.heartbeat) {
+      message.heartbeat = true;
+    }
     // When the server receives a ping it sends back a pong.
     var response = JSON.stringify(message);
     $tw.connections[data.source_connection].socket.send(response);

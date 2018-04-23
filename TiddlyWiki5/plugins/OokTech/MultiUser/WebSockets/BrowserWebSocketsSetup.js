@@ -133,13 +133,11 @@ socket server, but it can be extended for use with other web socket servers.
           if ($tw.MultiUser.ExcludeList.indexOf(tiddlerTitle) === -1 && !tiddlerTitle.startsWith('$:/state/') && !tiddlerTitle.startsWith('$:/temp/')) {
             if (changes[tiddlerTitle].modified) {
               var token = localStorage.getItem('ws-token')
-              // console.log('Modified/Created Tiddler');
               var tiddler = $tw.wiki.getTiddler(tiddlerTitle);
               var message = JSON.stringify({messageType: 'saveTiddler', tiddler: tiddler, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             } else if (changes[tiddlerTitle].deleted) {
               var token = localStorage.getItem('ws-token')
-              // console.log('Deleted Tiddler');
               var message = JSON.stringify({messageType: 'deleteTiddler', tiddler: tiddlerTitle, wiki: $tw.wikiName, token: token});
               $tw.socket.send(message);
             }

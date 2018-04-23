@@ -78,6 +78,7 @@ var init = function (server, port) {
               console.log(data.messageType)
               levels.forEach(function(level, index) {
                 if (settings.access.actions[level].indexOf(data.messageType) !== -1) {
+                  console.log('Here')
                   allowed = true
                 }
               })
