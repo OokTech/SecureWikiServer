@@ -76,27 +76,6 @@ messageHandlers.announce = function (data) {
   }
 }
 
-/*
-  This responds to a ping from the browser. This is used to check and make sure
-  that the browser and server are connected.
-  It also echos back any data that was sent. This is used by the heartbeat to
-  make sure that the server and browser are still connected.
-*/
-/*
-messageHandlers.ping = function(data) {
-  var message = {type: 'pong'};
-  Object.keys(data).forEach(function (key) {
-    message[key] = data[key];
-  })
-  if (data.heartbeat) {
-    message.heartbeat = true;
-  }
-  // When the server receives a ping it sends back a pong.
-  var response = JSON.stringify(message);
-  $tw.connections[data.source_connection].socket.send(response);
-}
-*/
-
 // A function to add message handlers.
 var addHandlers = function (handlers) {
   // We expect an object where each property is a function for a different
