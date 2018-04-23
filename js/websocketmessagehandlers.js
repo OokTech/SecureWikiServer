@@ -82,6 +82,7 @@ messageHandlers.announce = function (data) {
   It also echos back any data that was sent. This is used by the heartbeat to
   make sure that the server and browser are still connected.
 */
+/*
 messageHandlers.ping = function(data) {
   var message = {type: 'pong'};
   Object.keys(data).forEach(function (key) {
@@ -94,6 +95,7 @@ messageHandlers.ping = function(data) {
   var response = JSON.stringify(message);
   $tw.connections[data.source_connection].socket.send(response);
 }
+*/
 
 // A function to add message handlers.
 var addHandlers = function (handlers) {

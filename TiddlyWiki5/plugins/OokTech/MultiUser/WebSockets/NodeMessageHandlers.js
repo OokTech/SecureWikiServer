@@ -65,6 +65,7 @@ if ($tw.node) {
     make sure that the server and browser are still connected.
   */
   $tw.nodeMessageHandlers.ping = function(data) {
+    console.log('Ping!')
     var message = {type: 'pong'};
     Object.keys(data).forEach(function (key) {
       message[key] = data[key];
