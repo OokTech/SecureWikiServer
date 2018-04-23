@@ -67,6 +67,7 @@ socket server, but it can be extended for use with other web socket servers.
       if the connection to the server gets interrupted.
     */
     var openSocket = function() {
+      console.log('Opened socket')
       var token = localStorage.getItem('ws-token')
       // Start the heartbeat process
       $tw.socket.send(JSON.stringify({messageType: 'ping', heartbeat: true, token: token}));
