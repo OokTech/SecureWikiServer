@@ -27,9 +27,9 @@
       }
     },
     "actions": {
-      "view": ["browserTiddlerList", "test", "ping"],
-      "edit": ["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "cancelEditingTiddler"],
-      "admin": ["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki"],
+      "view": ["browserTiddlerList", "test", "ping", "pong"],
+      "edit": ["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler"],
+      "admin": ["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer"],
       "scripts": ["runScript"]
     }
   }

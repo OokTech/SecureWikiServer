@@ -117,7 +117,8 @@ var sendAnnouncement = function () {
 // server that tells the server to set the connection as inactive.
 var disconnect = function () {
   if (ws.readyState === 1) {
-    ws.send(JSON.stringify({messageType: 'disconnect'}))
+    var token = localStorage.getItem('ws-token')
+    ws.send(JSON.stringify({messageType: 'disconnect', token: token}))
     ws.close()
     ws = false
   }

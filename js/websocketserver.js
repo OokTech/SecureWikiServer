@@ -71,14 +71,12 @@ var init = function (server, port) {
           settings.access.wikis = settings.access.wikis || {}
           if (settings.access.wikis[data.wiki]) {
             if (settings.access.wikis[data.wiki][decoded.level]) {
-              console.log(4)
               var levels = settings.access.wikis[data.wiki][decoded.level]
-              console.log(levels)
               var allowed = false
+              console.log(levels)
+              console.log(settings.access.actions)
+              console.log(data.messageType)
               levels.forEach(function(level, index) {
-                console.log(level)
-                console.log(settings.access.actions)
-                console.log(data)
                 if (settings.access.actions[level].indexOf(data.messageType) !== -1) {
                   allowed = true
                 }
@@ -119,8 +117,6 @@ var init = function (server, port) {
         eventData.source_connection = thisIndex
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.messageType] === 'function') {
-          //console.log(eventData)
-          //console.log(settings)
           // Check authorisation
           var authorised = authenticateMessage(eventData)
           if (authorised === true) {
