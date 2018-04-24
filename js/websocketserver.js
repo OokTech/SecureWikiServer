@@ -63,7 +63,8 @@ var init = function (server, port) {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var decoded = jwt.verify(data.token, key)
         // Special handling for the chat thing
-        if (decoded && (data.messageType === 'announce' || data.messageType === 'ping')) {
+        //if (decoded && (data.messageType === 'announce' || data.messageType === 'ping')) {
+        if (decoded && data.messageType === 'announce') {
           return true
         } else if (decoded.level) {
           settings = settings || {}
