@@ -63,9 +63,9 @@ var init = function (server, port) {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var decoded = jwt.verify(data.token, key)
         // Special handling for the chat thing
-        //if (decoded && (data.messageType === 'announce' || data.messageType === 'ping')) {
-        if (decoded && data.messageType === 'announce') {
-          return true
+        if (decoded && (data.messageType === 'announce' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
+        //if (decoded && data.messageType === 'announce') {
+          return decoded
         } else if (decoded.level) {
           settings = settings || {}
           settings.access = settings.access || {}
@@ -76,7 +76,7 @@ var init = function (server, port) {
               var allowed = false
               levels.forEach(function(level, index) {
                 if (settings.access.actions[level].indexOf(data.messageType) !== -1) {
-                  allowed = true
+                  allowed = decoded
                 }
               })
               return allowed
@@ -117,7 +117,8 @@ var init = function (server, port) {
         if (typeof messageHandlers[eventData.messageType] === 'function') {
           // Check authorisation
           var authorised = authenticateMessage(eventData)
-          if (authorised === true) {
+          if (authorised) {
+            eventData.decoded = authorised
             messageHandlers[eventData.messageType](eventData)
           }
           // If unauthorised just ignore it.
