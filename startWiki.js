@@ -43,7 +43,7 @@ function checkAuthorisation (response, fullName) {
   }
 }
 
-var addBasicRoutes = function () {
+var addRoutes = function () {
   wiki.router.get('/', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
