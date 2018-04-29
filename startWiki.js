@@ -72,79 +72,80 @@ var addBasicRoutes = function () {
     }
   })
 
-  wiki.addRoutes = function (inputObject, prefix) {
-    if (typeof inputObject === 'object') {
-      Object.keys(inputObject).forEach(function (wikiName) {
-        if (typeof inputObject[wikiName] === 'string') {
-          if (prefix === '') {
-            var fullName = wikiName;
-          } else {
-            fullName = prefix + '/' + wikiName;
-          }
-
-          // Make route handler
-          wiki.router.get(new RegExp('^\/' + fullName + '\/?$'), function(request, response, next) {
-            // Add a check to make sure that the person logged in is authorised
-            // to open the wiki.
-            var authorised = checkAuthorisation(response, fullName)
-            if (authorised) {
-              // Make sure we have loaded the wiki tiddlers.
-              // This does nothing if the wiki is already loaded.
-              var exists = wiki.tw.ServerSide.loadWiki(fullName, inputObject[wikiName]);
-              if (exists) {
-                // If servePlugin is not false than we strip out the filesystem
-                // and tiddlyweb plugins if they are there and add in the
-                // multiuser plugin.
-                var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
-                // Get the full text of the html wiki to send as the response.
-                var text = wiki.tw.ServerSide.prepareWiki(fullName, servePlugin);
-              } else {
-                var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
-              }
-
-              response.writeHead(200, {"Content-Type": "text/html"});
-              response.end(text,"utf8");
-            } else {
-              response.end(unauthorised, "utf8")
-            }
-          })
-
-
-          // And add the favicon route for the child wikis
-          wiki.router.get(/^\/' + fullName + '\/favicon.ico$/, function(request,response,next) {
-            // Add a check to make sure that the person logged in is authorised
-            // to open the wiki.
-            var authorised = checkAuthorisation(response, fullName)
-            if (authorised) {
-              response.writeHead(200, {"Content-Type": "image/x-icon"});
-              var buffer = wiki.tw.wiki.getTiddlerText("{" + fullName + "}" + "$:/favicon.ico","");
-              response.end(buffer,"base64");
-            }
-          })
-          console.log("Added route " + String(new RegExp('^\/' + fullName + '\/?$')))
-        } else {
-          // recurse!
-          // This needs to be a new variable or else the rest of the wikis at
-          // this level will get the longer prefix as well.
-          var nextPrefix = prefix===''?wikiName:prefix + '/' + wikiName;
-          wiki.addRoutesThing(inputObject[wikiName], nextPrefix);
-        }
-      })
+  wiki.router.get('/:wikiName', function(request, response) {
+    // Make sure that the logged in person is authorised to access the wiki
+    var authorised = checkAuthorisation(response,request.params.wikiName)
+    if (authorised) {
+      // Make sure we have loaded the wiki tiddlers.
+      // This does nothing if the wiki is already loaded.
+      var exists = wiki.tw.ServerSide.loadWiki(request.params.wikiName, inputObject[wikiName]);
+      if (exists) {
+        // If servePlugin is not false than we strip out the filesystem
+        // and tiddlyweb plugins if they are there and add in the
+        // multiuser plugin.
+        var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
+        // Get the full text of the html wiki to send as the response.
+        var text = wiki.tw.ServerSide.prepareWiki(request.params.wikiName, servePlugin);
+      } else {
+        var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+      }
+      response.writeHead(200, {"Content-Type": "text/html"});
+      response.end(text,"utf8");
+    } else {
+      response.end(unauthorised, "utf8")
     }
-  }
+  })
+
+  wiki.router.get('/:wikiName/favicon.ico', function (request, response) {
+    // Add a check to make sure that the person logged in is authorised
+    // to open the wiki.
+    var authorised = checkAuthorisation(response, request.params.wikiName)
+    if (authorised) {
+      response.writeHead(200, {"Content-Type": "image/x-icon"});
+      var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","");
+      response.end(buffer,"base64");
+    }
+  })
+
+  /*
+  wiki.router.get('/:wikiName/*', function(request, response) {
+    // Make sure that the logged in person is authorised to access the wiki
+    var authorised = checkAuthorisation(response,request.params.wikiName)
+    if (authorised) {
+      // Make sure we have loaded the wiki tiddlers.
+      // This does nothing if the wiki is already loaded.
+      var exists = wiki.tw.ServerSide.loadWiki(request.params.wikiName, inputObject[wikiName]);
+      if (exists) {
+        // If servePlugin is not false than we strip out the filesystem
+        // and tiddlyweb plugins if they are there and add in the
+        // multiuser plugin.
+        var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
+        // Get the full text of the html wiki to send as the response.
+        var text = wiki.tw.ServerSide.prepareWiki(request.params.wikiName, servePlugin);
+      } else {
+        var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+      }
+      response.writeHead(200, {"Content-Type": "text/html"});
+      response.end(text,"utf8");
+    } else {
+      response.end(unauthorised, "utf8")
+    }
+  })
+  */
 }
 
 addBasicRoutes()
 
 wiki.tw.httpServer = {}
 
+// Here these two functions are placeholders, they don't do anything here.
 wiki.tw.httpServer.addOtherRoutes = function () {
-  wiki.addRoutes(wiki.tw.settings.wikis, '')
+//  wiki.addRoutes(wiki.tw.settings.wikis, '')
 }
 
 wiki.tw.httpServer.clearRoutes = function () {
-  wiki.router = express.Router()
-  addBasicRoutes()
+//  wiki.router = express.Router()
+//  addBasicRoutes()
 }
 
 module.exports = wiki
