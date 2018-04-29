@@ -78,7 +78,7 @@ var addRoutes = function () {
     if (authorised) {
       // Make sure we have loaded the wiki tiddlers.
       // This does nothing if the wiki is already loaded.
-      var exists = wiki.tw.ServerSide.loadWiki(request.params.wikiName, inputObject[wikiName]);
+      var exists = wiki.tw.ServerSide.loadWiki(request.params.wikiName, wiki.tw.settings.wikis[wikiName]);
       if (exists) {
         // If servePlugin is not false than we strip out the filesystem
         // and tiddlyweb plugins if they are there and add in the
