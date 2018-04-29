@@ -134,7 +134,7 @@ var addRoutes = function () {
   */
 }
 
-addBasicRoutes()
+//addBasicRoutes()
 
 wiki.tw.httpServer = {}
 
