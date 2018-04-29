@@ -136,6 +136,8 @@ var addRoutes = function () {
 
 //addBasicRoutes()
 
+addRoutes()
+
 wiki.tw.httpServer = {}
 
 // Here these two functions are placeholders, they don't do anything here.
