@@ -5,7 +5,7 @@
   "httpsPort": "8443",
   "wssPort": "40510",
   "tokenPrivateKeyPath": "./.ssh/id_rsa",
-  "tokenTTL": "1h",
+  "tokenTTL": "24h",
   "saltRounds": "10",
   "access": {
     "wikis": {
