@@ -8,23 +8,33 @@
 <h1>
   Sign in to OokTech.xyz
 </h1>
-<div>
-  Websocket state: <span id='wsstate'>Disconnected</span>
-  <input type='button' onclick='connect()' id='connect' value='Connect'></input>
-  <input type='button' onclick='disconnect()' id='disconnect' value='Disconnect'></input>
-</div>
-<div>
-  Authentication state: <span id='authstate'>Unauthenticated</span>
-  <br>
-  Name: <input type="text" value="" id="user"></input>
-  <br>
-  Password: <input type="password" value="" id="pwd"></input>
-  <br>
-  <input type='button' onclick='login()' value='Login' id='login'></input>
-  <input type='button' onclick='logout()' value='Logout' id='logout' disabled></input>
-</div>
+<table style='border:solid 1px;'>
+  <tr>
+    <td style='border:solid 1px;padding: 5px;'>
+      Authentication state: <span id='authstate'>Unauthenticated</span>
+      <br>
+      <input type='button' onclick='loginAsGuest()' value='Login as Guest' id='loginasguest'></input>
+      <br>
+      or enter credentials
+      <br>
+      Name: <input type="text" value="" id="user"></input>
+      Password: <input type="password" value="" id="pwd"></input>
+      <br>
+      <input type='button' onclick='login()' value='Login' id='login'></input>
+      <input type='button' onclick='logout()' value='Logout' id='logout' disabled></input>
+    </td>
+    <td style='border:solid 1px;padding: 5px;'>
+      Websocket state: <span id='wsstate'>Disconnected</span>
+      <br>
+      <input type='button' onclick='connect()' id='connect' value='Connect'></input>
+      <input type='button' onclick='disconnect()' id='disconnect' value='Disconnect' disabled></input>
+    </td>
+  </tr>
+</table>
 <br>
+Once you are authenticated you can go to the <a href='./wiki'>wiki</a>
 <br>
+Or you can use the simple chat here. When you are authenticated you can type in your message here and click Send.
 <h2>
   Send Message
 </h2>
@@ -34,7 +44,7 @@
   id='message'
   style='width:100%'
 ></input>
-
+<!--
 <input
   type='button'
   onclick='sendMessage()'
@@ -42,15 +52,15 @@
   id='echo'
   disabled
 ></input>
+-->
 <input
   type='button'
   onclick='sendAnnouncement()'
-  value='Announce'
+  value='Send'
   id='announce'
   disabled
 ></input>
 <br>
-Note: Only you see the echos, everyone connected sees announcements. If you are authenticated than it shows your name with what you say, otherwise it shows 'Unauthenticated'.
 
 <h2>
   Messages

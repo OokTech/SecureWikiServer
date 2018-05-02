@@ -25,6 +25,7 @@ var logout = function () {
   document.cookie = 'token=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   document.getElementById('logout').disabled = true
   document.getElementById('login').disabled = false
+  document.getElementById('loginasguest').disabled = false
   document.getElementById('user').disabled = false
   document.getElementById('pwd').disabled = false
 }
@@ -42,10 +43,11 @@ var login = function () {
       if (this.responseText) {
         localStorage.setItem('ws-token', this.responseText)
         var expires = new Date();
-        expires.setTime(expires.getTime() + 60*60*1000)
+        expires.setTime(expires.getTime() + 24*60*60*1000)
         document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
         document.getElementById('logout').disabled = false
         document.getElementById('login').disabled = true
+        document.getElementById('loginasguest').disabled = true
         document.getElementById('user').disabled = true
         document.getElementById('pwd').disabled = true
         if (ws.readyState === 1) {
@@ -57,6 +59,38 @@ var login = function () {
     name = document.getElementById('user').value
     var password = document.getElementById('pwd').value
     xhr.send(`name=${name}&pwd=${password}`)
+  }
+}
+
+/*
+  This logs in as a guest
+*/
+var loginAsGuest = function () {
+  if (window.location.protocol === 'https:') {
+    var xhr = new XMLHttpRequest()
+    xhr.open('POST', 'authenticate', true)
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    xhr.onload = function () {
+      // do something to response
+      if (this.responseText) {
+        localStorage.setItem('ws-token', this.responseText)
+        var expires = new Date();
+        expires.setTime(expires.getTime() + 24*60*60*1000)
+        document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
+        document.getElementById('logout').disabled = false
+        document.getElementById('login').disabled = true
+        document.getElementById('loginasguest').disabled = true
+        document.getElementById('user').disabled = true
+        document.getElementById('pwd').disabled = true
+        if (ws.readyState === 1) {
+          var token = localStorage.getItem('ws-token')
+          ws.send(JSON.stringify({messageType: 'announce', text: "I connected!!", token: token}))
+        }
+      }
+    }
+    name = document.getElementById('user').value
+    var password = document.getElementById('pwd').value
+    xhr.send(`name=Guest&pwd=Guest`)
   }
 }
 
@@ -83,7 +117,8 @@ var sendAnnouncement = function () {
 // server that tells the server to set the connection as inactive.
 var disconnect = function () {
   if (ws.readyState === 1) {
-    ws.send(JSON.stringify({messageType: 'disconnect'}))
+    var token = localStorage.getItem('ws-token')
+    ws.send(JSON.stringify({messageType: 'disconnect', token: token}))
     ws.close()
     ws = false
   }

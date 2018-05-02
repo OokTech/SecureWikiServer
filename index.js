@@ -41,6 +41,8 @@ function checkAuthentication (req, res, next) {
     var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
     var decoded = jwt.verify(req.cookies.token, key)
     if (decoded) {
+      // Add the decoded token to res object.
+      res.decoded = decoded
       return next()
     } else {
       res.redirect('/')
@@ -111,6 +113,3 @@ var messageHandlers = require('./js/websocketmessagehandlers.js')
 
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
-
-// We may have to wait for this part if the config stuff isn't loaded yet.
-wiki.addRoutes(wiki.tw.settings.wikis, '')

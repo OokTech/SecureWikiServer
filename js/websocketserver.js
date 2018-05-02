@@ -14,6 +14,11 @@
 
 // Require needed libraries
 var ws = require('ws')
+var path = require('path')
+var fs = require('fs')
+var jwt = require('jsonwebtoken')
+
+var settings = require('../LoadConfig.js')
 
 // Initialise variables
 var websocketserver = {}
@@ -46,6 +51,52 @@ var init = function (server, port) {
   // every time a new connection is initially established.
   wss.on('connection', handleConnection)
 
+
+  // Authentication function, if the token is verified it returns the decoded
+  // token payload, otherwise returns false.
+  // Not being authenticated doesn't mean that the request fails because we can
+  // have public actions, or different levels of authentication for different
+  // actions.
+  function authenticateMessage(data) {
+    if (data.token) {
+      try {
+        var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
+        var decoded = jwt.verify(data.token, key)
+        // Special handling for the chat thing
+        if (decoded && (data.messageType === 'announce' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
+        //if (decoded && data.messageType === 'announce') {
+          return decoded
+        } else if (decoded.level) {
+          settings = settings || {}
+          settings.access = settings.access || {}
+          settings.access.wikis = settings.access.wikis || {}
+          if (settings.access.wikis[data.wiki]) {
+            if (settings.access.wikis[data.wiki][decoded.level]) {
+              var levels = settings.access.wikis[data.wiki][decoded.level]
+              var allowed = false
+              levels.forEach(function(level, index) {
+                if (settings.access.actions[level].indexOf(data.messageType) !== -1) {
+                  allowed = decoded
+                }
+              })
+              return allowed
+            } else {
+              return false
+            }
+          } else {
+            return false
+          }
+        } else {
+          return false
+        }
+      } catch (e) {
+        return false
+      }
+    } else {
+      return false
+    }
+  }
+
   // This function sets up how the websocket server handles incomming
   // connections. It is generic and extensible so you can use this same server
   // to make many different things.
@@ -64,7 +115,13 @@ var init = function (server, port) {
         eventData.source_connection = thisIndex
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.messageType] === 'function') {
-          messageHandlers[eventData.messageType](eventData)
+          // Check authorisation
+          var authorised = authenticateMessage(eventData)
+          if (authorised) {
+            eventData.decoded = authorised
+            messageHandlers[eventData.messageType](eventData)
+          }
+          // If unauthorised just ignore it.
         } else {
           console.log('No handler for message of type ', eventData.messageType)
         }
