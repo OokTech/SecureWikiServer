@@ -101,11 +101,59 @@ var addRoutes = function () {
     // to open the wiki.
     var authorised = checkAuthorisation(response, request.params.wikiName)
     if (authorised) {
-      response.writeHead(200, {"Content-Type": "image/x-icon"});
-      var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","");
-      response.end(buffer,"base64");
+      response.writeHead(200, {"Content-Type": "image/x-icon"})
+      var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","")
+      response.end(buffer,"base64")
     }
   })
+
+  if (wiki.tw.settings.filePathRoot) {
+    // If we have a path for files add the file server route
+    wiki.router.get('/file/:name', function (request, response) {
+      var pathname = path.join(wiki.tw.settings.filePathRoot, request.params.name)
+      // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
+      if (pathname.startsWith(wiki.tw.settings.filePathRoot)) {
+        fs.exists(pathname, function(exists) {
+          if (!exists || fs.statSync(pathname).isDirectory()) {
+            response.statusCode = 404;
+            response.end();
+          }
+          fs.readFile(pathname, function(err, data) {
+            if (err) {
+              console.log(err)
+              response.statusCode = 500;
+              response.end()
+            } else {
+              var ext = path.parse(pathname).ext;
+              var mimeMap = wiki.tw.settings.mimeMap || {
+                '.ico': 'image/x-icon',
+                '.html': 'text/html',
+                '.png': 'image/png',
+                '.jpg': 'image/jpeg',
+                '.jpeg': 'image/jpeg',
+                '.wav': 'audio/wav',
+                '.mp3': 'audio/mpeg',
+                '.svg': 'image/svg+xml',
+                '.pdf': 'application/pdf',
+                '.doc': 'application/msword',
+                '.gif': 'image/gif'
+              }
+              if (mimeMap[ext] || (wiki.tw.settings.allowUnsafeMimeTypes && wiki.tw.settings.accptance === "I Will Not Get Tech Support For This")) {
+                response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"})
+                response.end(data)
+              } else {
+                response.writeHead(403)
+                response.end()
+              }
+            }
+          })
+        })
+      } else {
+        response.writeHead(403)
+        response.end()
+      }
+    })
+  }
 
   /*
   wiki.router.get('/:wikiName/*', function(request, response) {
