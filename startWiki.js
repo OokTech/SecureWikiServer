@@ -1,4 +1,5 @@
 var path = require('path')
+var fs = require('fs')
 var express = require('express')
 var wiki = {}
 wiki.router = express.Router()
