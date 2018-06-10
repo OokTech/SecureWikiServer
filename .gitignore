@@ -3,6 +3,8 @@ people/
 *.crt
 *.key
 Wikis/
+TiddlyWiki5/plugins/OokTech/
 nohup.out
 package-lock.json
 Local.json
+.DS_Store
