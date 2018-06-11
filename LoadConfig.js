@@ -77,8 +77,7 @@ var loadConfiguration = function () {
     } else {
       LocalConfig = rawLocalConfig
     }
-    //updateConfig(config, LocalConfig)
-    config = Object.apply(config, LocalConfig)
+    updateConfig(config, LocalConfig)
   } catch (e) {
     // If we can't parse it what do we do?
     console.log('failed to parse local config')
@@ -92,7 +91,6 @@ var loadConfiguration = function () {
   in the local config.
   Changes to the configuration are later saved to the local config.
 */
-/*
 var updateConfig = function (globalConfig, localConfig) {
   // Walk though the properties in the localConfig, for each property set the
   // global config equal to it, but only for singleton properties. Don't set
@@ -100,7 +98,7 @@ var updateConfig = function (globalConfig, localConfig) {
   // globalConfig.Accelerometer.Controller =
   // localConfig.Accelerometer.Contorller
   Object.keys(localConfig).forEach(function (key, index) {
-    if (typeof localConfig[key] === 'object' && !localConfig[key] instanceof Array) {
+    if (typeof localConfig[key] === 'object' && !(localConfig[key] instanceof Array)) {
       if (!globalConfig[key]) {
         globalConfig[key] = {}
       }
@@ -111,7 +109,7 @@ var updateConfig = function (globalConfig, localConfig) {
     }
   })
 }
-*/
+
 /*
   This saves a setting to the local config file.
   the input setting
@@ -139,8 +137,7 @@ var saveConfigSetting = function (setting) {
       } else {
         LocalConfig = rawLocalConfig
       }
-      LocalConfig = Object.apply(LocalConfig, config)
-      //updateConfig(LocalConfig, setting)
+      updateConfig(LocalConfig, setting)
       // Save the updated local.json file.
       fs.writeFileSync(localConfigPath, JSON.stringify(LocalConfig, null, 2))
     } catch (e) {
