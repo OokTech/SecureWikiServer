@@ -35,12 +35,12 @@ var loadConfiguration = function () {
 
   // Nested try/catch in case user defined path is invalid.
   try {
-    rawConfig = fs.readFileSync(configPath)
+    rawConfig = fs.readFileSync(configPath, {encoding: 'utf8'})
   } catch (err) {
     // Try default fallback next.
     console.log('Failed to load configuration, falling back to default.')
     try {
-      rawConfig = fs.readFileSync(defaultConfig)
+      rawConfig = fs.readFileSync(defaultConfig, {encoding: 'utf8'})
     } catch (err) {
       // Failed to load default as well.
       console.log('Failed to load default config!')
@@ -63,7 +63,7 @@ var loadConfiguration = function () {
   var rawLocalConfig
 
   try {
-    rawLocalConfig = fs.readFileSync(localConfigPath)
+    rawLocalConfig = fs.readFileSync(localConfigPath, {encoding: 'utf8'})
   } catch (e) {
     // If failure return an empty json object
     rawLocalConfig = {}
@@ -72,7 +72,11 @@ var loadConfiguration = function () {
 
   try {
     // Try parsing the local config json file
-    LocalConfig = JSON.parse(rawLocalConfig)
+    if (typeof rawLocalConfig === 'string') {
+      LocalConfig = JSON.parse(rawLocalConfig)
+    } else {
+      LocalConfig = rawLocalConfig
+    }
     updateConfig(config, LocalConfig)
   } catch (e) {
     // If we can't parse it what do we do?
@@ -94,7 +98,7 @@ var updateConfig = function (globalConfig, localConfig) {
   // globalConfig.Accelerometer.Controller =
   // localConfig.Accelerometer.Contorller
   Object.keys(localConfig).forEach(function (key, index) {
-    if (typeof localConfig[key] === 'object') {
+    if (typeof localConfig[key] === 'object' && !(localConfig[key] instanceof Array)) {
       if (!globalConfig[key]) {
         globalConfig[key] = {}
       }
@@ -118,7 +122,7 @@ var saveConfigSetting = function (setting) {
   var rawLocalConfig
 
   try {
-    rawLocalConfig = fs.readFileSync(localConfigPath)
+    rawLocalConfig = fs.readFileSync(localConfigPath, {encoding: 'utf8'})
   } catch (e) {
     // If failure return an empty json object
     //rawLocalConfig = {}
@@ -128,7 +132,11 @@ var saveConfigSetting = function (setting) {
   if (rawLocalConfig) {
     try {
       // Try parsing the local config json file
-      LocalConfig = JSON.parse(rawLocalConfig)
+      if (typeof rawLocalConfig === 'string') {
+        LocalConfig = JSON.parse(rawLocalConfig)
+      } else {
+        LocalConfig = rawLocalConfig
+      }
       updateConfig(LocalConfig, setting)
       // Save the updated local.json file.
       fs.writeFileSync(localConfigPath, JSON.stringify(LocalConfig, null, 2))

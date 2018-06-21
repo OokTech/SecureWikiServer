@@ -8,9 +8,8 @@ var fileRouter = express.Router()
 wiki.tw = require("./TiddlyWiki5/boot/boot.js").TiddlyWiki()
 
 // Fake the command line arguments
-//var args = ['./Wikis/IndexWiki','--wsserver']
 var args = ['./Wikis/IndexWiki','--externalserver']
-wiki.tw.boot.argv = args//Array.prototype.slice.call(process.argv,2)
+wiki.tw.boot.argv = args
 
 // Boot the TW5 app
 wiki.tw.boot.boot()

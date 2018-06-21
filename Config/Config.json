@@ -12,18 +12,6 @@
       "RootWiki": {
         "Guest": ["view"],
         "Admin": ["view", "edit", "admin"]
-      },
-      "Bookmarks": {
-        "Admin": ["view", "edit", "admin"]
-      },
-      "Jed": {
-        "Admin": ["view", "edit", "admin"]
-      },
-      "Josh": {
-        "Admin": ["view", "edit", "admin"]
-      },
-      "Tasklist": {
-        "Admin": ["view", "edit", "admin"]
       }
     },
     "actions": {

@@ -1,0 +1,3 @@
+[submodule "Plugins/OokTech/Bob"]
+	path = Plugins/OokTech/Bob
+	url = https://github.com/OokTech/TW5-Bob
