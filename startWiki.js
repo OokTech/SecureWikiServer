@@ -3,6 +3,7 @@ var fs = require('fs')
 var express = require('express')
 var wiki = {}
 wiki.router = express.Router()
+var fileRouter = express.Router()
 
 wiki.tw = require("./TiddlyWiki5/boot/boot.js").TiddlyWiki()
 
@@ -156,35 +157,7 @@ var addRoutes = function () {
       }
     })
   }
-
-  /*
-  wiki.router.get('/:wikiName/*', function(request, response) {
-    // Make sure that the logged in person is authorised to access the wiki
-    var authorised = checkAuthorisation(response,request.params.wikiName)
-    if (authorised) {
-      // Make sure we have loaded the wiki tiddlers.
-      // This does nothing if the wiki is already loaded.
-      var exists = wiki.tw.ServerSide.loadWiki(request.params.wikiName, inputObject[wikiName]);
-      if (exists) {
-        // If servePlugin is not false than we strip out the filesystem
-        // and tiddlyweb plugins if they are there and add in the
-        // multiuser plugin.
-        var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
-        // Get the full text of the html wiki to send as the response.
-        var text = wiki.tw.ServerSide.prepareWiki(request.params.wikiName, servePlugin);
-      } else {
-        var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
-      }
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.end(text,"utf8");
-    } else {
-      response.end(unauthorised, "utf8")
-    }
-  })
-  */
 }
-
-//addBasicRoutes()
 
 addRoutes()
 
@@ -192,12 +165,11 @@ wiki.tw.httpServer = {}
 
 // Here these two functions are placeholders, they don't do anything here.
 wiki.tw.httpServer.addOtherRoutes = function () {
-//  wiki.addRoutes(wiki.tw.settings.wikis, '')
+
 }
 
 wiki.tw.httpServer.clearRoutes = function () {
-//  wiki.router = express.Router()
-//  addBasicRoutes()
+
 }
 
 module.exports = wiki
