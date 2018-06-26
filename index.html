@@ -1,9 +1,4 @@
 <html>
-<style>
-.hide {
-  display: none;
-}
-</style>
 <script src='./js'></script>
 <h1>
   Sign in to OokTech.xyz
@@ -23,16 +18,18 @@
       <input type='button' onclick='login()' value='Login' id='login'></input>
       <input type='button' onclick='logout()' value='Logout' id='logout' disabled></input>
     </td>
+    <!--
     <td style='border:solid 1px;padding: 5px;'>
       Websocket state: <span id='wsstate'>Disconnected</span>
       <br>
       <input type='button' onclick='connect()' id='connect' value='Connect'></input>
       <input type='button' onclick='disconnect()' id='disconnect' value='Disconnect' disabled></input>
     </td>
+    -->
   </tr>
 </table>
 <br>
-Once you are authenticated you can go to the <a href='./wiki'>wiki</a>
+Once you are authenticated you can go to the <span id='wikilink'>wiki</span>
 <br>
 Or you can use the simple chat here. When you are authenticated you can type in your message here and click Send.
 <h2>
@@ -44,15 +41,6 @@ Or you can use the simple chat here. When you are authenticated you can type in 
   id='message'
   style='width:100%'
 ></input>
-<!--
-<input
-  type='button'
-  onclick='sendMessage()'
-  value='Echo'
-  id='echo'
-  disabled
-></input>
--->
 <input
   type='button'
   onclick='sendAnnouncement()'

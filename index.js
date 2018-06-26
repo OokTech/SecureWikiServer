@@ -77,7 +77,7 @@ app.post('/authenticate', function (req, res) {
           // Create the token for it
           // Sign the token using the rsa private key of the server
           var key = fs.readFileSync(path.join(baseDir, settings.tokenPrivateKeyPath))
-          var token = jwt.sign({level: info.level}, key, {expiresIn: settings.tokenTTL})
+          var token = jwt.sign({level: info.level, name: req.body.name}, key, {expiresIn: settings.tokenTTL})
           // Send the token back
           res.send(token)
         } else {
@@ -104,10 +104,10 @@ var options = {
 
 https.createServer(options, app).listen(settings.httpsPort)
 
-// Create the websocket server on port 40510
+// Create the websocket server on port listed in settings.wssPort
 var wsserver = require('./js/websocketserver.js')
-var httpserver = https.createServer(options).listen(settings.wssPort)
-wsserver.init(httpserver, settings.wssPort)
+var httpsServer = https.createServer(options).listen(settings.wssPort)
+wsserver.init(httpsServer)
 
 var messageHandlers = require('./js/websocketmessagehandlers.js')
 

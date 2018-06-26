@@ -15,6 +15,46 @@ var ws = false
 var name = 'unauthenticated'
 
 /*
+  This checks if we are logged in already or not and set the UI state
+  appropriately.
+*/
+function checkStatus() {
+  var loggedin = false
+  // check if there is a token stored, if not we aren't logged in.
+  var token = localStorage.getItem('ws-token')
+  if (token) {
+    // Ask the server to verify the token, just send an echo message and check
+    // if it is set as verified or not.
+    if (ws.readyState === 1) {
+      ws.send(JSON.stringify({messageType: 'echo', token: token}))
+    }
+  }
+}
+
+/*
+  This sets the UI to the logged out state.
+*/
+var setLoggedOut = function () {
+  document.getElementById('logout').disabled = true
+  document.getElementById('login').disabled = false
+  document.getElementById('loginasguest').disabled = false
+  document.getElementById('user').disabled = false
+  document.getElementById('pwd').disabled = false
+
+}
+
+/*
+  This sets the UI to the logged in state
+*/
+var setLoggedIn = function () {
+  document.getElementById('logout').disabled = false
+  document.getElementById('login').disabled = true
+  document.getElementById('loginasguest').disabled = true
+  document.getElementById('user').disabled = true
+  document.getElementById('pwd').disabled = true
+}
+
+/*
   This logs out, which in this context means:
   - deleting the token from the local storage
   - disabling the logout button
@@ -23,11 +63,7 @@ var name = 'unauthenticated'
 var logout = function () {
   localStorage.removeItem('ws-token')
   document.cookie = 'token=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-  document.getElementById('logout').disabled = true
-  document.getElementById('login').disabled = false
-  document.getElementById('loginasguest').disabled = false
-  document.getElementById('user').disabled = false
-  document.getElementById('pwd').disabled = false
+  setLoggedOut()
 }
 
 /*
@@ -45,14 +81,11 @@ var login = function () {
         var expires = new Date();
         expires.setTime(expires.getTime() + 24*60*60*1000)
         document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
-        document.getElementById('logout').disabled = false
-        document.getElementById('login').disabled = true
-        document.getElementById('loginasguest').disabled = true
-        document.getElementById('user').disabled = true
-        document.getElementById('pwd').disabled = true
+        setLoggedIn()
         if (ws.readyState === 1) {
           var token = localStorage.getItem('ws-token')
           ws.send(JSON.stringify({messageType: 'announce', text: "I connected!!", token: token}))
+          document.getElementById('wikilink').innerHTML = "<a href='./wiki'>wiki</a>"
         }
       }
     }
@@ -77,14 +110,11 @@ var loginAsGuest = function () {
         var expires = new Date();
         expires.setTime(expires.getTime() + 24*60*60*1000)
         document.cookie = 'token=' + this.responseText + '; expires=' + expires + '; path=/;'
-        document.getElementById('logout').disabled = false
-        document.getElementById('login').disabled = true
-        document.getElementById('loginasguest').disabled = true
-        document.getElementById('user').disabled = true
-        document.getElementById('pwd').disabled = true
+        setLoggedIn()
         if (ws.readyState === 1) {
           var token = localStorage.getItem('ws-token')
           ws.send(JSON.stringify({messageType: 'announce', text: "I connected!!", token: token}))
+          document.getElementById('wikilink').innerHTML = "<a href='./wiki/Public'>wiki</a>"
         }
       }
     }
@@ -133,9 +163,8 @@ var connect = function () {
       document.getElementById('pwd').disabled = true
   }
   wsprotocol = window.location.protocol === 'https:'?'wss://':'ws://'
-  wsport = '40510'
+  //wsport = '40510'
   if (ws.readyState !== 1) {
-    //ws = new WebSocket(wsprotocol + window.location.hostname + ':' + wsport)
     ws = new WebSocket(wsprotocol + window.location.hostname + ':' + wsport)
     // event emmited when connected
     ws.onopen = function () {
@@ -145,6 +174,7 @@ var connect = function () {
       document.getElementById('disconnect').disabled = false
       document.getElementById('echo').disabled = false
       document.getElementById('announce').disabled = false
+      checkStatus()
     }
     ws.onclose = function () {
       // Set things to the closed state.
@@ -157,9 +187,12 @@ var connect = function () {
       var display = document.getElementById('display')
       display.innerHTML += '<br>' + JSON.parse(ev.data).text
       if (window.location.protocol === 'https:') {
-        if (JSON.parse(ev.data).authenticated) {
-          document.getElementById('authstate').innerHTML = 'Authenticated'
+        evdata = JSON.parse(ev.data)
+        if (evdata.authenticated) {
+          setLoggedIn()
+          document.getElementById('authstate').innerHTML = 'Authenticated as ' + evdata.name
         } else {
+          setLoggedOut()
           document.getElementById('authstate').innerHTML = 'Unauthenticated'
         }
       }
