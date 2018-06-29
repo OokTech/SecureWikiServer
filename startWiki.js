@@ -1,19 +1,26 @@
+var settings = require('./LoadConfig.js')
 var express = require('express')
 var wiki = {}
 wiki.router = express.Router()
 
 wiki.tw = require("./TiddlyWiki5/boot/boot.js").TiddlyWiki()
 
+var path = require('path')
+
+var baseDir = settings.wikiPathBase === 'homedir'?require('os').homedir():settings.wikiPathBase
+var wikisPath = settings.wikisPath || 'Wikis'
+var indexWikiName = settings.indexWikiName || 'IndexWiki'
+
+var IndexWikiPath = path.resolve(baseDir, wikisPath, indexWikiName)
+
 // Fake the command line arguments
-var args = ['./Wikis/IndexWiki','--externalserver']
+var args = [IndexWikiPath, '--externalserver']
 wiki.tw.boot.argv = args
 
 // Boot the TW5 app
 wiki.tw.boot.boot()
 
 var unauthorised = "<html><p>You don't have the authorisation to log view this wiki.</p> <p><a href='/'>Return to login</a></p></html>"
-
-var settings = require('./LoadConfig.js')
 
 function checkAuthorisation (response, fullName) {
   settings = settings || {}

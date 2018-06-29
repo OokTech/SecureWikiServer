@@ -103,11 +103,13 @@ var options = {
 }
 
 https.createServer(options, app).listen(settings.httpsPort)
+console.log(`HTTPS server on ${settings.httpsPort}`)
 
 // Create the websocket server on port listed in settings.wssPort
 var wsserver = require('./js/websocketserver.js')
 var httpsServer = https.createServer(options).listen(settings.wssPort)
 wsserver.init(httpsServer)
+console.log(`WSServer on ${settings.wssPort}`)
 
 var messageHandlers = require('./js/websocketmessagehandlers.js')
 

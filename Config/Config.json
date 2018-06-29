@@ -7,6 +7,9 @@
   "tokenPrivateKeyPath": "./.ssh/id_rsa",
   "tokenTTL": "24h",
   "saltRounds": "10",
+  "wikiPathBase": "homedir",
+  "wikisPath": "./Wikis",
+  "indexWikiName": "IndexWiki",
   "access": {
     "wikis": {
       "RootWiki": {

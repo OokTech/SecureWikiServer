@@ -40,7 +40,7 @@ var setLoggedOut = function () {
   document.getElementById('loginasguest').disabled = false
   document.getElementById('user').disabled = false
   document.getElementById('pwd').disabled = false
-
+  document.getElementById('announce').disabled = true
 }
 
 /*
@@ -52,6 +52,7 @@ var setLoggedIn = function () {
   document.getElementById('loginasguest').disabled = true
   document.getElementById('user').disabled = true
   document.getElementById('pwd').disabled = true
+  document.getElementById('announce').disabled = false
 }
 
 /*
