@@ -25,7 +25,7 @@ function checkStatus() {
     // Ask the server to verify the token, just send an echo message and check
     // if it is set as verified or not.
     if (ws.readyState === 1) {
-      ws.send(JSON.stringify({messageType: 'echo', token: token}))
+      ws.send(JSON.stringify({messageType: 'credentialCheck', token: token}))
     }
   }
 }
@@ -133,12 +133,19 @@ var sendMessage = function () {
   }
 }
 
+function isEnter (event) {
+  if (event.key === "Enter") {
+    sendAnnouncement()
+  }
+}
+
 // Send a message to the server and it gets sent to all of the connected
 // computers
 var sendAnnouncement = function () {
   if (ws.readyState === 1) {
     var token = localStorage.getItem('ws-token')
-    ws.send(JSON.stringify({messageType: 'announce', text: document.getElementById('user').value + ': ' + document.getElementById('message').value, token: token}))
+    var name = JSON.parse(window.atob(token.split('.')[1])).name
+    ws.send(JSON.stringify({messageType: 'announce', text: name + ': ' + document.getElementById('message').value, token: token}))
     document.getElementById('message').value = ''
   }
 }
@@ -167,30 +174,26 @@ var connect = function (settings) {
     ws = new WebSocket(wsprotocol + window.location.hostname + ':' + settings.wssPort)
     // event emmited when connected
     ws.onopen = function () {
-      // Set things to the opened state
-      //document.getElementById('wsstate').innerHTML = 'Connected'
-      //document.getElementById('connect').disabled = true
-      //document.getElementById('disconnect').disabled = false
-      //document.getElementById('echo').disabled = false
+      // Set things to the open state
       document.getElementById('announce').disabled = false
       checkStatus()
     }
     ws.onclose = function () {
       // Set things to the closed state.
-      //document.getElementById('wsstate').innerHTML = 'Disconnected'
-      //document.getElementById('connect').disabled = false
-      //document.getElementById('disconnect').disabled = true
       document.getElementById('announce').disabled = true
     }
     // event emmited when receiving message
     ws.onmessage = function (ev) {
-      var display = document.getElementById('display')
-      display.innerHTML += '<br>' + JSON.parse(ev.data).text
-      if (window.location.protocol === 'https:') {
-        evdata = JSON.parse(ev.data)
+      evdata = JSON.parse(ev.data)
+      if (evdata.messageType === 'announce') {
+        var display = document.getElementById('display')
+        display.innerHTML += '<br>' + JSON.parse(ev.data).text
+      }
+      if (window.location.protocol === 'https:' && evdata.messageType === 'credentialCheck') {
         if (evdata.authenticated) {
           setLoggedIn()
-          document.getElementById('authstate').innerHTML = 'Authenticated as ' + evdata.name
+          var token = localStorage.getItem('ws-token')
+          document.getElementById('authstate').innerHTML = 'Authenticated as ' + JSON.parse(window.atob(token.split('.')[1])).name
         } else {
           setLoggedOut()
           document.getElementById('authstate').innerHTML = 'Unauthenticated'

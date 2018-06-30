@@ -43,10 +43,8 @@ var init = function (server, port) {
   // existing https server, otherwise it doesn't make much difference.
   var WebSocketServer = ws.Server
   if (server) {
-    console.log('using server ', server)
     var wss = new WebSocketServer({server})
   } else {
-    console.log('using port ', port)
     var wss = new WebSocketServer({port: port})
   }
   // This sets the handler function for the 'connection' event. This fires
@@ -65,7 +63,7 @@ var init = function (server, port) {
         var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
         var decoded = jwt.verify(data.token, key)
         // Special handling for the chat thing
-        if (decoded && (data.messageType === 'announce' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
+        if (decoded && (data.messageType === 'announce' || data.messageType === 'credentialCheck' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
         //if (decoded && data.messageType === 'announce') {
           return decoded
         } else if (decoded.level) {

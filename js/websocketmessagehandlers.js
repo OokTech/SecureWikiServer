@@ -36,6 +36,17 @@ function authenticateMessage(data) {
 }
 
 /*
+  This lets the client detemine if their credentials are still valid
+*/
+messageHandlers.credentialCheck = function (data) {
+  var authenticated = authenticateMessage(data)
+  if (authenticated) {
+    data['authenticated'] = true
+  }
+  connections[data.source_connection].socket.send(JSON.stringify(data))
+}
+
+/*
   Echo example to show how the authentication stuff works
 */
 messageHandlers.echo = function (data) {

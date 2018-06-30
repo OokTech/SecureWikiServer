@@ -40,6 +40,7 @@ Or you can use the simple chat here. When you are authenticated you can type in 
   value=''
   id='message'
   style='width:100%'
+   onkeypress="isEnter (event)"
 ></input>
 <input
   type='button'
@@ -53,10 +54,13 @@ Or you can use the simple chat here. When you are authenticated you can type in 
 <h2>
   Messages
 </h2>
+<div
+  style='height:40vh;overflow:auto;'
+>
 <p
   id='display'
 >
     Nothing yet...
 </p>
-
+</div>
 </html>
