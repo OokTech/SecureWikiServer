@@ -10,7 +10,6 @@
 */
 
 // Set the port used by the websocket server and placeholder variables
-var wsport = '40510'
 var ws = false
 var name = 'unauthenticated'
 
@@ -155,7 +154,7 @@ var disconnect = function () {
   }
 }
 
-var connect = function () {
+var connect = function (settings) {
   if (window.location.protocol !== 'https:') {
       document.getElementById('authstate').innerHTML = 'Login only allowed on https!'
       document.getElementById('logout').disabled = true
@@ -164,24 +163,24 @@ var connect = function () {
       document.getElementById('pwd').disabled = true
   }
   wsprotocol = window.location.protocol === 'https:'?'wss://':'ws://'
-  //wsport = '40510'
   if (ws.readyState !== 1) {
-    ws = new WebSocket(wsprotocol + window.location.hostname + ':' + wsport)
+    ws = new WebSocket(wsprotocol + window.location.hostname + ':' + settings.wssPort)
     // event emmited when connected
     ws.onopen = function () {
       // Set things to the opened state
-      document.getElementById('wsstate').innerHTML = 'Connected'
-      document.getElementById('connect').disabled = true
-      document.getElementById('disconnect').disabled = false
-      document.getElementById('echo').disabled = false
+      //document.getElementById('wsstate').innerHTML = 'Connected'
+      //document.getElementById('connect').disabled = true
+      //document.getElementById('disconnect').disabled = false
+      //document.getElementById('echo').disabled = false
       document.getElementById('announce').disabled = false
       checkStatus()
     }
     ws.onclose = function () {
       // Set things to the closed state.
-      document.getElementById('wsstate').innerHTML = 'Disconnected'
-      document.getElementById('connect').disabled = false
-      document.getElementById('disconnect').disabled = true
+      //document.getElementById('wsstate').innerHTML = 'Disconnected'
+      //document.getElementById('connect').disabled = false
+      //document.getElementById('disconnect').disabled = true
+      document.getElementById('announce').disabled = true
     }
     // event emmited when receiving message
     ws.onmessage = function (ev) {
@@ -201,4 +200,14 @@ var connect = function () {
   }
 }
 
-connect()
+function start () {
+  var request = new XMLHttpRequest()
+  request.open('GET', '/settings')
+  request.onload = function(e) {
+    var settings = JSON.parse(request.responseText)
+    connect(settings)
+  }
+  request.send()
+}
+
+start()

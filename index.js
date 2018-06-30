@@ -62,6 +62,10 @@ app.get('/js', function (req, res) {
   res.sendFile(__dirname + '/js/browser.js')
 })
 
+app.get('/settings', function (req, res) {
+  res.send({'wssPort': settings.wssPort})
+})
+
 app.post('/authenticate', function (req, res) {
   // Get the authentication heanders and stuff
   // Check to make sure the header send a name and password

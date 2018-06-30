@@ -43,8 +43,10 @@ var init = function (server, port) {
   // existing https server, otherwise it doesn't make much difference.
   var WebSocketServer = ws.Server
   if (server) {
+    console.log('using server ', server)
     var wss = new WebSocketServer({server})
   } else {
+    console.log('using port ', port)
     var wss = new WebSocketServer({port: port})
   }
   // This sets the handler function for the 'connection' event. This fires
