@@ -186,8 +186,7 @@ var connect = function (settings) {
     ws.onmessage = function (ev) {
       evdata = JSON.parse(ev.data)
       if (evdata.messageType === 'announce') {
-        var display = document.getElementById('display')
-        display.innerHTML += '<br>' + JSON.parse(ev.data).text
+        receiveMessage(evdata)
       }
       if (window.location.protocol === 'https:' && evdata.messageType === 'credentialCheck') {
         if (evdata.authenticated) {
@@ -200,6 +199,19 @@ var connect = function (settings) {
         }
       }
     }
+  }
+}
+
+function receiveMessage (data) {
+  var contentDiv = document.getElementById('content')
+  var isScrolledToBottom = contentDiv.scrollHeight - contentDiv.clientHeight <= contentDiv.scrollTop + 5
+  var time = new Date(Number(data.time)).toLocaleString()
+  var newElement = document.createElement('div')
+  //newElement.innerHTML = `${time} - ${data.from}: ${data.text}`
+  newElement.innerHTML = data.text
+  contentDiv.appendChild(newElement)
+  if (isScrolledToBottom) {
+    contentDiv.scrollTop = contentDiv.scrollHeight - contentDiv.clientHeight;
   }
 }
 
