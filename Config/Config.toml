@@ -1,0 +1,38 @@
+# This is the default settings file. You should never edit this.
+
+# Server setup
+filePathBase="homedir"
+serverKeyPath="./private.key"
+certPath="./certificate.crt"
+httpsPort="8443"
+wssPort="40510"
+tokenPrivateKeyPath="./.ssh/id_rsa"
+tokenTTL="24h"
+saltRounds="10"
+# Wiki location settings
+# Relative wiki paths are relative to this
+# if this is set to 'homedir' than it uses the current user home folder as the
+# base of relative paths. Otherwise it needs to be an absolute path.
+wikiPathBase="homedir"
+# The folder that holds the wikis
+wikisPath="./Wikis"
+# This is the name of the wiki to use as the root wiki.
+rootWikiName="IndexWiki"
+# Settings for wiki access
+[access]
+  # Settings for individual wikis
+  [access.wikis]
+    [access.wikis.RootWiki]
+      Guest=["view"]
+      Admin=["view", "edit", "admin"]
+  # Definitions for which actions are allowed for eath
+  [access.actions]
+    # These are the actions needed to be able to view a wiki and get updates
+    view=["browserTiddlerList", "test", "ping", "pong"]
+    # These are the actions needed to edit a wiki
+    edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler"]
+    # These are general admin actions
+    admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer"]
+    # Scripts is special because it lets you run shell scripts. Be careful with
+    # this one!
+    scripts=["runScript"]

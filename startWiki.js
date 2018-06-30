@@ -9,12 +9,12 @@ var path = require('path')
 
 var baseDir = settings.wikiPathBase === 'homedir'?require('os').homedir():settings.wikiPathBase
 var wikisPath = settings.wikisPath || 'Wikis'
-var indexWikiName = settings.indexWikiName || 'IndexWiki'
+var rootWikiName = settings.rootWikiName || 'IndexWiki'
 
-var IndexWikiPath = path.resolve(baseDir, wikisPath, indexWikiName)
+var RootWikiPath = path.resolve(baseDir, wikisPath, rootWikiName)
 
 // Fake the command line arguments
-var args = [IndexWikiPath, '--externalserver']
+var args = [RootWikiPath, '--externalserver']
 wiki.tw.boot.argv = args
 
 // Boot the TW5 app

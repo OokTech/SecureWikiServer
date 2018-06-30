@@ -2,6 +2,24 @@
 
 This is an example implementation of a websocket server with authentication.
 
+## Setup concerns
+
+Each of these needs instructions and more explanation.
+
+- Make sure that the sub-modules are properly initialised and updated.
+  - This includes tiddlywiki in the `TiddlyWiki5` folder and Bob in the
+    `Plugins/OokTech/Bob` folder.
+- Need to make an index wiki and correctly list the path to it.
+  - The wiki needs to include the Bob plugin.
+- Need to make sure that the .crt and private key files for the ssl part exist
+  and the paths are listed correctly
+- need to make sure that the key used to sign the tokens exists
+  - Also the path to the key file. By default it is in `./.ssh/id_rsa`
+    (relative to `~`)
+- Need to setup accounts for people.
+  - The command to add a person is `node addperson.js Name Password Level`
+  - Guest gets set up with `node addperson.js Guest Guest Guest`
+
 ## What it does
 
 There is an http server that can serve pages. It accepts POSTs to

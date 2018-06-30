@@ -21,9 +21,11 @@
  */
 
 var fs = require('fs')
+var TOML = require('@iarna/toml')
 
 // Fallback to known default file.
-const defaultConfig = './Config/Config.json'
+//const defaultConfig = './Config/Config.json'
+const defaultConfig = './Config/Config.toml'
 
 var LocalConfig = {}
 
@@ -49,7 +51,8 @@ var loadConfiguration = function () {
 
   // Try to parse the JSON after loading the file.
   try {
-    config = JSON.parse(rawConfig)
+    //config = JSON.parse(rawConfig)
+    config = TOML.parse(rawConfig)
   } catch (err) {
     console.log('Failed to parse configuration file! Continuing with an empty configuration.')
     // Create an empty default configuration.
@@ -59,21 +62,25 @@ var loadConfiguration = function () {
   // We need to load the local configuration that may be different from the
   // global defaults. The local configuration is preferentially used over the
   // global defaults.
-  var localConfigPath = './Config/Local.json'
+  //var localConfigPath = './Config/Local.json'
+  var localConfigPath = './Config/Local.toml'
   var rawLocalConfig
 
   try {
     rawLocalConfig = fs.readFileSync(localConfigPath, {encoding: 'utf8'})
   } catch (e) {
     // If failure return an empty json object
-    rawLocalConfig = {}
+    //rawLocalConfig = {}
+    // We need an empty string for TOML
+    rawLocalConfig = ""
     console.log('failed to load local config')
   }
 
   try {
     // Try parsing the local config json file
     if (typeof rawLocalConfig === 'string') {
-      LocalConfig = JSON.parse(rawLocalConfig)
+      //LocalConfig = JSON.parse(rawLocalConfig)
+      LocalConfig = TOML.parse(rawLocalConfig)
     } else {
       LocalConfig = rawLocalConfig
     }
@@ -118,7 +125,8 @@ var saveConfigSetting = function (setting) {
   // We need to load the local configuration that may be different from the
   // global defaults. The local configuration is preferentially used over the
   // global defaults.
-  var localConfigPath = './Config/Local.json'
+  //var localConfigPath = './Config/Local.json'
+  var localConfigPath = './Config/Local.toml'
   var rawLocalConfig
 
   try {
@@ -133,13 +141,15 @@ var saveConfigSetting = function (setting) {
     try {
       // Try parsing the local config json file
       if (typeof rawLocalConfig === 'string') {
-        LocalConfig = JSON.parse(rawLocalConfig)
+        //LocalConfig = JSON.parse(rawLocalConfig)
+        LocalConfig = TOML.parse(rawLocalConfig)
       } else {
         LocalConfig = rawLocalConfig
       }
       updateConfig(LocalConfig, setting)
       // Save the updated local.json file.
-      fs.writeFileSync(localConfigPath, JSON.stringify(LocalConfig, null, 2))
+      //fs.writeFileSync(localConfigPath, JSON.stringify(LocalConfig, null, 2))
+      fs.writeFileSync(localConfigPath, TOML.stringify(LocalConfig))
     } catch (e) {
       // If we can't parse it what do we do?
       console.log('failed to parse local config')

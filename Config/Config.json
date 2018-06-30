@@ -9,7 +9,7 @@
   "saltRounds": "10",
   "wikiPathBase": "homedir",
   "wikisPath": "./Wikis",
-  "indexWikiName": "IndexWiki",
+  "rootWikiName": "IndexWiki",
   "access": {
     "wikis": {
       "RootWiki": {

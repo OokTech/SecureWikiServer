@@ -7,4 +7,5 @@ TiddlyWiki5/plugins/OokTech/
 nohup.out
 package-lock.json
 Local.json
+Local.toml
 .DS_Store
