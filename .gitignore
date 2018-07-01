@@ -9,3 +9,5 @@ package-lock.json
 Local.json
 Local.toml
 .DS_Store
+*.pid
+test.sh

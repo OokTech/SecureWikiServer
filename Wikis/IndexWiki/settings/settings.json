@@ -1,16 +1,41 @@
 {
   "wikis": {
-    "Bookmarks": "./Wikis/Bookmarks",
-    "Jed": "./Wikis/Jed",
-    "Josh": "./Wikis/Josh",
-    "Tasklist": "./Wikis/Tasklist"
+    "test1": "./Wikis/test1",
+    "test2": "./Wikis/test2",
+    "test3": "./Wikis/test3",
+    "test4": "./Wikis/test4",
+    "test5": "./Wikis/test5",
+    "test6": "./Wikis/test6",
+    "test7": "./Wikis/test7",
+    "test8": "./Wikis/test8",
+    "test9": "./Wikis/test9",
+    "test10": "./Wikis/test10",
+    "test11": "./Wikis/test11",
+    "test12": "./Wikis/test12",
+    "test13": "./Wikis/test13",
+    "test14": "./Wikis/test14",
+    "test15": "./Wikis/test15",
+    "test16": "./Wikis/test16",
+    "test17": "./Wikis/test17",
+    "test18": "./Wikis/test18",
+    "test19": "./Wikis/test19",
+    "test20": "./Wikis/test20",
+    "test21": "./Wikis/test21",
+    "test22": "./Wikis/test22",
+    "test23": "./Wikis/test23"
   },
   "ws-server": {
     "host": "0.0.0.0",
     "port": 8443,
     "wssport": 40510,
-    "useExternalWSS": true,
+    "useExternalWSS": "true",
     "rootTiddler": "$:/core/save/single",
     "wikiPathPrefix": "wiki/"
+  },
+  "serverInfo": {
+    "ipAddress": "127.0.0.1",
+    "port": 8443,
+    "host": "0.0.0.0",
+    "wssPort": 40510
   }
 }

@@ -36,19 +36,36 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(cookieParser())
 
+/*
+  This checks to see if there is a valid token with the request
+  or that the wiki in question is set to public
+*/
 function checkAuthentication (req, res, next) {
-  try {
-    var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
-    var decoded = jwt.verify(req.cookies.token, key)
-    if (decoded) {
-      // Add the decoded token to res object.
-      res.decoded = decoded
-      return next()
-    } else {
+  var regexp = new RegExp(`^${req.baseUrl}\/?`)
+  var wikiName = req.originalUrl.replace(regexp, '')
+  if (wikiName === '') {
+    wikiName = 'RootWiki'
+  }
+  // check if the wiki is public first
+  settings.wikis = settings.wikis || {}
+  settings.wikis[wikiName] = settings.wikis[wikiName] || {}
+  if (settings.wikis[wikiName].public) {
+    return next()
+  } else {
+    // If the wiki isn't public than check if there is a valid token
+    try {
+      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var decoded = jwt.verify(req.cookies.token, key)
+      if (decoded) {
+        // Add the decoded token to res object.
+        res.decoded = decoded
+        return next()
+      } else {
+        res.redirect('/')
+      }
+    } catch (e) {
       res.redirect('/')
     }
-  } catch (e) {
-    res.redirect('/')
   }
 }
 

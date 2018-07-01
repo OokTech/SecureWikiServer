@@ -12,6 +12,11 @@ var fs = require('fs')
 var path = require('path')
 var jwt = require('jsonwebtoken')
 
+var settings = require('../LoadConfig.js')
+var TOML = require('@iarna/toml')
+
+//console.log(settings.Local)
+
 var connections = require('./websocketserver.js').connections
 
 var messageHandlers = messageHandlers || {}

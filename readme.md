@@ -11,6 +11,7 @@ Each of these needs instructions and more explanation.
     `Plugins/OokTech/Bob` folder.
 - Need to make an index wiki and correctly list the path to it.
   - The wiki needs to include the Bob plugin.
+- Set the paths to the plugin, themes and editions folders
 - Need to make sure that the .crt and private key files for the ssl part exist
   and the paths are listed correctly
 - need to make sure that the key used to sign the tokens exists
@@ -19,6 +20,7 @@ Each of these needs instructions and more explanation.
 - Need to setup accounts for people.
   - The command to add a person is `node addperson.js Name Password Level`
   - Guest gets set up with `node addperson.js Guest Guest Guest`
+- In the wiki setup you have to set the `useExternalWSS` setting to true
 
 ## What it does
 

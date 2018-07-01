@@ -28,12 +28,12 @@ var TOML = require('@iarna/toml')
 const defaultConfig = './Config/Config.toml'
 
 var LocalConfig = {}
+var config = {}
 
 var loadConfiguration = function () {
   // If path argument exists, use it. Otherwise fall back to defaultConfig.
   var configPath = defaultConfig
   var rawConfig
-  var config
 
   // Nested try/catch in case user defined path is invalid.
   try {
@@ -89,7 +89,11 @@ var loadConfiguration = function () {
     // If we can't parse it what do we do?
     console.log('failed to parse local config')
   }
-  return config
+  // Watch the local config file for changes and reload the configuration when
+  // anything changes.
+  fs.watch(localConfigPath, function (eventType, fileName) {
+    loadConfiguration()
+  })
 }
 
 /*
@@ -147,9 +151,9 @@ var saveConfigSetting = function (setting) {
         LocalConfig = rawLocalConfig
       }
       updateConfig(LocalConfig, setting)
-      // Save the updated local.json file.
-      //fs.writeFileSync(localConfigPath, JSON.stringify(LocalConfig, null, 2))
+      // Save the updated Local.toml file.
       fs.writeFileSync(localConfigPath, TOML.stringify(LocalConfig))
+      updateConfig(config, LocalConfig)
     } catch (e) {
       // If we can't parse it what do we do?
       console.log('failed to parse local config')
@@ -158,8 +162,8 @@ var saveConfigSetting = function (setting) {
 }
 
 // Returns the parsed configuration.
-var Configuration = loadConfiguration()
+loadConfiguration()
 
-module.exports = Configuration
+module.exports = config
 module.exports.Local = LocalConfig
 module.exports.saveSetting = saveConfigSetting

@@ -3,9 +3,38 @@ var express = require('express')
 var wiki = {}
 wiki.router = express.Router()
 
-wiki.tw = require("./TiddlyWiki5/boot/boot.js").TiddlyWiki()
+const path = require('path')
 
-var path = require('path')
+/*
+  This next block lets us set environment variables from the config files
+  instead of the command line.
+*/
+if (typeof settings.pluginsPath === 'string') {
+  var resolvedpluginspath = path.resolve(settings.pluginsPath);
+  if (process.env["TIDDLYWIKI_PLUGIN_PATH"] !== undefined && process.env["TIDDLYWIKI_PLUGIN_PATH"] !== '') {
+    process.env["TIDDLYWIKI_PLUGIN_PATH"] = process.env["TIDDLYWIKI_PLUGIN_PATH"] + path.delimiter + resolvedpluginspath;
+  } else {
+    process.env["TIDDLYWIKI_PLUGIN_PATH"] = resolvedpluginspath;
+  }
+}
+if (typeof settings.themesPath === 'string') {
+  var resolvedthemespath = path.resolve(settings.themesPath);
+  if (process.env["TIDDLYWIKI_THEME_PATH"] !== undefined && process.env["TIDDLYWIKI_THEME_PATH"] !== '') {
+    process.env["TIDDLYWIKI_THEME_PATH"] = process.env["TIDDLYWIKI_THEME_PATH"] + path.delimiter + resolvedthemespath;
+  } else {
+    process.env["TIDDLYWIKI_THEME_PATH"] = resolvedthemespath;
+  }
+}
+if (typeof settings.editionsPath === 'string') {
+  var resolvededitionspath = path.resolve(settings.editionsPath)
+  if (process.env["TIDDLYWIKI_EDITION_PATH"] !== undefined && process.env["TIDDLYWIKI_EDITION_PATH"] !== '') {
+    process.env["TIDDLYWIKI_EDITION_PATH"] = process.env["TIDDLYWIKI_EDITION_PATH"] + path.delimiter + resolvededitionspath;
+  } else {
+    process.env["TIDDLYWIKI_EDITION_PATH"] = resolvededitionspath;
+  }
+}
+
+wiki.tw = require("./TiddlyWiki5/boot/boot.js").TiddlyWiki()
 
 var baseDir = settings.wikiPathBase === 'homedir'?require('os').homedir():settings.wikiPathBase
 var wikisPath = settings.wikisPath || 'Wikis'
@@ -20,31 +49,39 @@ wiki.tw.boot.argv = args
 // Boot the TW5 app
 wiki.tw.boot.boot()
 
-var unauthorised = "<html><p>You don't have the authorisation to log view this wiki.</p> <p><a href='/'>Return to login</a></p></html>"
+var unauthorised = "<html><p>You don't have the authorisation to view this wiki.</p> <p><a href='/'>Return to login</a></p></html>"
 
+/*
+  This checks to see if the person has viewing permissions.
+  Other permisions (edit, etc.) are checked when the person tries to use them.
+*/
 function checkAuthorisation (response, fullName) {
-  settings = settings || {}
-  settings.access = settings.access || {}
-  settings.access.wikis = settings.access.wikis || {}
-  if (response.decoded) {
-    if (response.decoded.level) {
-      if (settings.access.wikis[fullName]) {
-        if (settings.access.wikis[fullName][response.decoded.level]) {
-          if (settings.access.wikis[fullName][response.decoded.level].indexOf("view") !== -1) {
-            return true
-          } else {
-            return false
-          }
-        } else {
-          return false
-        }
+  settings = require('./LoadConfig.js')
+  settings.wikis = settings.wikis || {}
+  settings.wikis[fullName] = settings.wikis[fullName] || {}
+  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
+  // If the wiki is set as public than anyone can view it
+  if (settings.wikis[fullName].public) {
+    return true
+  } else if (response.decoded) {
+    // If the logged in person is the owner than they can view it
+    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner) {
+      return true
+    } else if (settings.wikis[fullName].access[response.decoded.level]) {
+      // If the logged in level of the person can view the wiki than they
+      // can view it.
+      if (settings.wikis[fullName].access[response.decoded.level].indexOf("view") !== -1) {
+        return true
       } else {
+        // No view permissions given to the logged in level
         return false
       }
     } else {
+      // No access for the logged in level
       return false
     }
   } else {
+    // No valid token was supplied
     return false
   }
 }
@@ -116,14 +153,44 @@ var addRoutes = function () {
 
 addRoutes()
 
-wiki.tw.httpServer = {}
+/*
+  This function initialises the access settings for a new wiki
+
+  name is the name of the wiki actually used (it may be different than what
+  is supplied in data due to naming conflicts)
+  data is the message from the browser. data.name is the person who made the
+  wiki.
+
+  data can have permissions listed in it, but only up as high as the person
+  has permissions.
+
+  So if the person making the wiki has edit, view and admin access they
+  couldn't give script access to anyone on the new wiki.
+
+  owner = data.name
+  public = data.public || false
+  [wikis.(name).access]
+    (optional access things here)
+    Guest=["view"]
+
+  All of these settings go into Local.toml
+*/
+wiki.tw.ExternalServer = wiki.tw.ExternalServer || {}
+wiki.tw.ExternalServer.initialiseWikiSettings = function(name, data) {
+  localSettings = settings.Local
+  localSettings.wikis = localSettings.wikis || {}
+  localSettings.wikis[name] = {}
+  localSettings.wikis[name].public = data.public || false
+  localSettings.wikis[name].owner = data.decoded.name
+  settings.saveSetting(localSettings)
+}
 
 // Here these two functions are placeholders, they don't do anything here.
 // They are needed to make this work with the non-express server components.
+wiki.tw.httpServer = {}
 wiki.tw.httpServer.addOtherRoutes = function () {
   // Does nothing!
 }
-
 wiki.tw.httpServer.clearRoutes = function () {
   // Also does nothing!
 }

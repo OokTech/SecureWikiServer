@@ -16,23 +16,34 @@ saltRounds="10"
 wikiPathBase="homedir"
 # The folder that holds the wikis
 wikisPath="./Wikis"
+# The folder that holds the plugins
+pluginsPath="./Plugins"
+# The folder that holds the themes
+themesPath="./Themes"
 # This is the name of the wiki to use as the root wiki.
 rootWikiName="IndexWiki"
 # Settings for wiki access
-[access]
-  # Settings for individual wikis
-  [access.wikis]
-    [access.wikis.RootWiki]
+[wikis]
+  [wikis.RootWiki]
+    # If this has a name that the person named is the owner and gets owner
+    # privileges
+    owner=false
+    # If this is true than the wiki is publicly viewable as a static wiki
+    public=true
+    [wikis.RootWiki.access]
       Guest=["view"]
       Admin=["view", "edit", "admin"]
-  # Definitions for which actions are allowed for eath
-  [access.actions]
-    # These are the actions needed to be able to view a wiki and get updates
-    view=["browserTiddlerList", "test", "ping", "pong"]
-    # These are the actions needed to edit a wiki
-    edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler"]
-    # These are general admin actions
-    admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer"]
-    # Scripts is special because it lets you run shell scripts. Be careful with
-    # this one!
-    scripts=["runScript"]
+[actions]
+  # These are the actions needed to be able to view a wiki and get updates
+  view=["browserTiddlerList", "test", "ping", "pong"]
+  # These are the actions needed to edit a wiki
+  edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler"]
+  # These are general admin actions
+  admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer", "unloadWiki"]
+  # Scripts is special because it lets you run shell scripts. Be careful with
+  # this one!
+  scripts=["runScript"]
+  # Owner is a special class that applies to the person who made the wiki.
+  # Even if they don't belong to any groups they have special permissions for
+  # that wiki.
+  owner=["browserTiddlerList", "test", "ping", "pong", "saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "unloadWiki"]
