@@ -10,3 +10,7 @@
   - The owner of the wiki is set to the person whose token is used to send the
     message. This means that they have immediate access to the wiki without any
     restarts.
+- Added the 'serveWikiOnRoot' option that serves the index wiki on / instead of
+  on /wiki
+  - This means that the wiki has to take care of login and stuff. The Login
+    plugin is made for this.

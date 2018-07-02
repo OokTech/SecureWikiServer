@@ -69,20 +69,6 @@ function checkAuthentication (req, res, next) {
   }
 }
 
-app.use('/wiki', checkAuthentication, wiki.router)
-
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html')
-})
-
-app.get('/js', function (req, res) {
-  res.sendFile(__dirname + '/js/browser.js')
-})
-
-app.get('/settings', function (req, res) {
-  res.send({'wssPort': settings.wssPort})
-})
-
 app.post('/authenticate', function (req, res) {
   // Get the authentication heanders and stuff
   // Check to make sure the header send a name and password
@@ -115,6 +101,27 @@ app.post('/authenticate', function (req, res) {
     res.status(400).send(false)
   }
 })
+
+/*
+  Setup the wiki routes
+*/
+if (settings.serveWikiOnRoot === true ) {
+  app.use('/', checkAuthentication, wiki.router)
+} else {
+  app.use('/wiki', checkAuthentication, wiki.router)
+
+  app.get('/js', function (req, res) {
+    res.sendFile(__dirname + '/js/browser.js')
+  })
+
+  app.get('/settings', function (req, res) {
+    res.send({'wssPort': settings.wssPort})
+  })
+
+  app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html')
+  })
+}
 
 keypath = path.join(baseDir, settings.serverKeyPath)
 certpath = path.join(baseDir, settings.certPath)
