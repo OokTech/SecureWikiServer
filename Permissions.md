@@ -15,6 +15,8 @@ to.
 - `admin` - the person can make changes to the wiki settings, make new wikis, make
 single file wikis from all or some of the wikis tiddler, stop the wiki server
 - `script` - the person can use the wiki to trigger shell scripts
+- `owner` - reserved for only the owner of the wiki. It grants the same
+  privlidges as `view` and `edit` in addition to the `unloadWiki` message.
 
 A wiki has an owner. The owner always has view, edit and admin permissions.
 
@@ -27,5 +29,11 @@ These permissions are for setting ownership and permissions.
 
 What do they need to be?
 
-These allow a person to change the wiki permissions. The owner can always set
-the view, edit, and admin levels of their own wiki.
+`Guest` - logged in as a guest
+`Normal` - logged in with a normal name and password
+`Admin` - logged in as an administrator
+
+So far we have `Guest` who isn't allowed to change any wiki permissions unless
+they own a wiki and `Admin` who can change any wiki permissions.
+
+But without the utilities to change the permissions they don't mean much.
