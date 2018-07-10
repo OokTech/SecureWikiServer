@@ -2,7 +2,7 @@
   This is a generic extensible websocket server.
 
   Each message comes in as a json object. Each message has to have a
-  messageType property which names the message handler function to use.
+  type property which names the message handler function to use.
 
   The handler function is passed the message as a json object. Any
   authentication or validation is done by the message handlers.
@@ -66,7 +66,7 @@ var init = function (server, port) {
         var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
         var decoded = jwt.verify(data.token, key)
         // Special handling for the chat thing
-        if (decoded && (data.messageType === 'announce' || data.messageType === 'credentialCheck' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
+        if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
           return decoded
         } else if (decoded.level) {
           if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
@@ -78,7 +78,7 @@ var init = function (server, port) {
             }
             var allowed = false
             levels.forEach(function(level, index) {
-              if (settings.actions[level].indexOf(data.messageType) !== -1) {
+              if (settings.actions[level].indexOf(data.type) !== -1) {
                 allowed = decoded
               }
             })
@@ -119,16 +119,17 @@ var init = function (server, port) {
         // Add the source to the eventData object so it can be used later.
         eventData.source_connection = thisIndex
         // Make sure we have a handler for the message type
-        if (typeof messageHandlers[eventData.messageType] === 'function') {
+        if (typeof messageHandlers[eventData.type] === 'function') {
           // Check authorisation
           var authorised = authenticateMessage(eventData)
           if (authorised) {
             eventData.decoded = authorised
-            messageHandlers[eventData.messageType](eventData)
+            messageHandlers[eventData.type](eventData)
           }
           // If unauthorised just ignore it.
         } else {
-          console.log('No handler for message of type ', eventData.messageType)
+          console.log(eventData)
+          console.log('No handler for message of type ', eventData.type)
         }
       } catch (e) {
         console.log("WebSocket error, probably closed connection: ", e)

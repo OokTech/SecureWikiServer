@@ -25,7 +25,7 @@ function checkStatus() {
     // Ask the server to verify the token, just send an echo message and check
     // if it is set as verified or not.
     if (ws.readyState === 1) {
-      ws.send(JSON.stringify({messageType: 'credentialCheck', token: token}))
+      ws.send(JSON.stringify({type: 'credentialCheck', token: token}))
     }
   }
 }
@@ -84,7 +84,7 @@ var login = function () {
         setLoggedIn()
         if (ws.readyState === 1) {
           var token = localStorage.getItem('ws-token')
-          ws.send(JSON.stringify({messageType: 'announce', text: "I connected!!", token: token}))
+          ws.send(JSON.stringify({type: 'announce', text: "I connected!!", token: token}))
           document.getElementById('wikilink').innerHTML = "<a href='./wiki'>wiki</a>"
         }
       }
@@ -113,7 +113,7 @@ var loginAsGuest = function () {
         setLoggedIn()
         if (ws.readyState === 1) {
           var token = localStorage.getItem('ws-token')
-          ws.send(JSON.stringify({messageType: 'announce', text: "I connected!!", token: token}))
+          ws.send(JSON.stringify({type: 'announce', text: "I connected!!", token: token}))
           document.getElementById('wikilink').innerHTML = "<a href='./wiki/Public'>wiki</a>"
         }
       }
@@ -128,7 +128,7 @@ var loginAsGuest = function () {
 var sendMessage = function () {
   if (ws.readyState === 1) {
     var token = localStorage.getItem('ws-token')
-    ws.send(JSON.stringify({messageType: 'echo', text: document.getElementById('message').value, name: name, token: token}))
+    ws.send(JSON.stringify({type: 'echo', text: document.getElementById('message').value, name: name, token: token}))
     document.getElementById('message').value = ''
   }
 }
@@ -145,7 +145,7 @@ var sendAnnouncement = function () {
   if (ws.readyState === 1) {
     var token = localStorage.getItem('ws-token')
     var name = JSON.parse(window.atob(token.split('.')[1])).name
-    ws.send(JSON.stringify({messageType: 'announce', text: name + ': ' + document.getElementById('message').value, token: token}))
+    ws.send(JSON.stringify({type: 'announce', text: name + ': ' + document.getElementById('message').value, token: token}))
     document.getElementById('message').value = ''
   }
 }
@@ -155,7 +155,7 @@ var sendAnnouncement = function () {
 var disconnect = function () {
   if (ws.readyState === 1) {
     var token = localStorage.getItem('ws-token')
-    ws.send(JSON.stringify({messageType: 'disconnect', token: token}))
+    ws.send(JSON.stringify({type: 'disconnect', token: token}))
     ws.close()
     ws = false
   }
@@ -185,10 +185,10 @@ var connect = function (settings) {
     // event emmited when receiving message
     ws.onmessage = function (ev) {
       evdata = JSON.parse(ev.data)
-      if (evdata.messageType === 'announce') {
+      if (evdata.type === 'announce') {
         receiveMessage(evdata)
       }
-      if (window.location.protocol === 'https:' && evdata.messageType === 'credentialCheck') {
+      if (window.location.protocol === 'https:' && evdata.type === 'credentialCheck') {
         if (evdata.authenticated) {
           setLoggedIn()
           var token = localStorage.getItem('ws-token')
