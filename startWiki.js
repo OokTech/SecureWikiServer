@@ -4,6 +4,7 @@ var wiki = {}
 wiki.router = express.Router()
 
 const path = require('path')
+const fs = require('fs')
 
 /*
   This next block lets us set environment variables from the config files
@@ -86,21 +87,142 @@ function checkAuthorisation (response, fullName) {
   }
 }
 
+/*
+  This function returns true if the logged in person has authorisation to
+  upload images for this wiki.
+  Wiki owners do not automatically get upload privlidges
+*/
+function checkUploadAuthorisation (response, fullName) {
+  settings = require('./LoadConfig.js')
+  settings.wikis = settings.wikis || {}
+  settings.wikis[fullName] = settings.wikis[fullName] || {}
+  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
+  if (response.decoded) {
+    if (settings.wikis[fullName].access[response.decoded.level]) {
+      if (settings.wikis[fullName].access[response.decoded.level].indexOf("upload") !== -1) {
+        // If the person is authenticated and has upload permissions on this
+        // wiki than allow uploads.
+        return true
+      } else {
+        // No upload permissions given to the logged in level
+        return false
+      }
+    } else {
+      // No access for this wiki at the authenticated level
+      return false
+    }
+  } else {
+    // Unauthenticated people can't upload things.
+    return false
+  }
+}
+
 var addRoutes = function () {
+  /*
+    This is for getting the root wiki
+  */
   wiki.router.get('/', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
     var authorised = checkAuthorisation(response, 'RootWiki')
     if (authorised) {
       // Load the wiki
-      wiki.tw.ServerSide.loadWiki('RootWiki', wiki.tw.boot.wikiPath);
+      wiki.tw.ServerSide.loadWiki('RootWiki', wiki.tw.boot.wikiPath)
       // Get the raw html to send
-      var text = wiki.tw.ServerSide.prepareWiki('RootWiki', true);
+      var text = wiki.tw.ServerSide.prepareWiki('RootWiki', true)
       // Send the html to the server
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.end(text,"utf8");
+      response.writeHead(200, {"Content-Type": "text/html"})
+      response.end(text,"utf8")
     } else {
       response.end(unauthorised, "utf8")
+    }
+  })
+
+  /*
+    This is for uploading media files
+  */
+  wiki.router.post('/upload', function (request, response) {
+    var authorised = checkUploadAuthorisation(response, request.get('x-wiki-name'))
+    if (authorised) {
+      var body = ''
+      request.on('data', function (data) {
+        body += data
+        if (body.length > 10e6) {
+          request.connection.destroy()
+        }
+      });
+      request.on('end', function () {
+        var parsedBody = JSON.parse(body)
+        var filesPath = path.join(wiki.tw.Bob.Wikis[parsedBody.wiki].wikiPath, 'files')
+        var buf = Buffer.from(parsedBody.tiddler.fields.text,'base64')
+        fs.writeFile(path.join(filesPath, parsedBody.tiddler.fields.title), buf, function(error) {
+          if (error) {
+            console.log(error)
+          } else {
+            console.log("C'est fini!")
+            return true
+          }
+        })
+      })
+      // TODO return some sort of response!
+      response.end()
+    } else {
+      response.writeHead(404)
+      response.end()
+    }
+  })
+
+  wiki.router.get('/files/:filePath', function (request, response) {
+    wiki.tw.settings.mimeMap = wiki.tw.settings.mimeMap || {
+      '.aac': 'audio/aac',
+      '.avi': 'video/x-msvideo',
+      '.csv': 'text/csv',
+      '.doc': 'application/msword',
+      '.epub': 'application/epub+zip',
+      '.gif': 'image/gif',
+      '.html': 'text/html',
+      '.htm': 'text/html',
+      '.ico': 'image/x-icon',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.mp3': 'audio/mpeg',
+      '.mpeg': 'video/mpeg',
+      '.oga': 'audio/ogg',
+      '.ogv': 'video/ogg',
+      '.ogx': 'application/ogg',
+      '.png': 'image/png',
+      '.svg': 'image/svg+xml',
+      '.weba': 'audio/weba',
+      '.webm': 'video/webm',
+      '.wav': 'audio/wav'
+    }
+    var authorised = checkAuthorisation(response, 'RootWiki')
+    if (authorised) {
+      //Make sure that the file type is listed in the mimeMap
+      if (wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]) {
+        var file = path.join(wiki.tw.Bob.Wikis['RootWiki'].wikiPath, 'files', request.params.filePath)
+        fs.access(file, fs.constants.F_OK, function (error) {
+          if (error) {
+            console.log(error)
+            // File doesn't exist, reply with 404 or something like that
+          } else {
+            // File exists! Reply with the file.
+            fs.readFile(file, function (err, data) {
+              if (err) {
+                // Problem, return 404
+                response.writeHead(404)
+                response.end()
+              } else {
+                // return file with mimetype
+                response.writeHead(200, {"Content-Type": wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]})
+                response.end(data)
+              }
+            })
+          }
+        })
+      } else {
+        response.writeHead(404)
+      }
     }
   })
 
@@ -136,6 +258,31 @@ var addRoutes = function () {
       response.end(text,"utf8");
     } else {
       response.end(unauthorised, "utf8")
+    }
+  })
+
+  wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
+    var authorised = checkAuthorisation(response, request.params.wikiName)
+    if (authorised) {
+      var file = path.join(wiki.tw.Bob.Wikis[request.params.wikiName].wikiPath, 'files', request.params.filePath)
+      fs.access(file, fs.constants.F_OK, function (error) {
+        if (error) {
+          // File doesn't exist, reply with 404 or something like that
+        } else {
+          // File exists! Reply with the file.
+          fs.readFile(file, function (err, data) {
+            if (err) {
+              // Problem, return 403 or 404
+              response.writeHead(404)
+              response.end()
+            } else {
+              // return file with mimetype
+              response.writeHead(200, {"Content-Type": wiki.tw.settings.mimeMap[path.extname(request.params.filePath)]})
+              response.end(data)
+            }
+          })
+        }
+      })
     }
   })
 
