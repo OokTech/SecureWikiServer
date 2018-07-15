@@ -32,7 +32,8 @@ rootWikiName="IndexWiki"
     public=true
     [wikis.RootWiki.access]
       Guest=["view"]
-      Admin=["view", "edit", "admin"]
+      Normal=["view", "edit"]
+      Admin=["view", "edit", "admin", "upload"]
 [actions]
   # These are the actions needed to be able to view a wiki and get updates
   view=["browserTiddlerList", "test", "ping", "pong"]
@@ -47,3 +48,5 @@ rootWikiName="IndexWiki"
   # Even if they don't belong to any groups they have special permissions for
   # that wiki.
   owner=["browserTiddlerList", "test", "ping", "pong", "saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "unloadWiki"]
+  # Uploads are done using http(s) so there don't need to be any actions listed here.
+  upload=[]
