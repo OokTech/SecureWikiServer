@@ -20,6 +20,8 @@ var jwt = require('jsonwebtoken')
 
 var settings = require('../LoadConfig.js')
 
+var wiki = require('../startWiki.js')
+
 // Initialise variables
 var websocketserver = {}
 var connections = []
@@ -122,7 +124,7 @@ var init = function (server, port) {
           connections[thisIndex].wiki = eventData.wiki;
           // Make sure that the new connection has the correct list of tiddlers
           // being edited.
-          $tw.Bob.UpdateEditingTiddlers();
+          wiki.tw.Bob.UpdateEditingTiddlers();
         }
         // Make sure we have a handler for the message type
         if (typeof messageHandlers[eventData.type] === 'function') {
