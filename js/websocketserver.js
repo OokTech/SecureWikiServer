@@ -110,31 +110,33 @@ var init = function (server, port) {
     var messageHandlers = require('./websocketmessagehandlers.js')
     console.log('New Connection')
     connections.push({'socket':client, 'active': true})
-    client.on('message', function incoming(event) {
-      var self = this
-      // Determine which connection the message came from
-      var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
-      try {
-        var eventData = JSON.parse(event)
-        // Add the source to the eventData object so it can be used later.
-        eventData.source_connection = thisIndex
-        // Make sure we have a handler for the message type
-        if (typeof messageHandlers[eventData.messageType] === 'function') {
-          // Check authorisation
-          var authorised = authenticateMessage(eventData)
-          if (authorised) {
-            eventData.decoded = authorised
-            messageHandlers[eventData.messageType](eventData)
-          }
-          // If unauthorised just ignore it.
-        } else {
-          console.log('No handler for message of type ', eventData.messageType)
-        }
-      } catch (e) {
-        console.log("WebSocket error, probably closed connection: ", e)
-      }
-    })
+    client.on('message', handleMessage)
     connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
+  }
+
+  function handleMessage(event) {
+    var self = this
+    // Determine which connection the message came from
+    var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
+    try {
+      var eventData = JSON.parse(event)
+      // Add the source to the eventData object so it can be used later.
+      eventData.source_connection = thisIndex
+      // Make sure we have a handler for the message type
+      if (typeof messageHandlers[eventData.messageType] === 'function') {
+        // Check authorisation
+        var authorised = authenticateMessage(eventData)
+        if (authorised) {
+          eventData.decoded = authorised
+          messageHandlers[eventData.messageType](eventData)
+        }
+        // If unauthorised just ignore it.
+      } else {
+        console.log('No handler for message of type ', eventData.messageType)
+      }
+    } catch (e) {
+      console.log("WebSocket error, probably closed connection: ", e)
+    }
   }
 }
 
@@ -145,3 +147,4 @@ var init = function (server, port) {
 module.exports = websocketserver
 module.exports.init = init
 module.exports.connections = connections
+module.exports.handleMessage = handleMessage
