@@ -115,36 +115,36 @@ var init = function (server, port) {
     client.on('message', handleMessage)
     connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
   }
+}
 
-  function handleMessage(event) {
-    var self = this
-    // Determine which connection the message came from
-    var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
-    try {
-      var eventData = JSON.parse(event)
-      // Add the source to the eventData object so it can be used later.
-      eventData.source_connection = thisIndex
-      if (eventData.wiki && eventData.wiki !== connections[thisIndex].wiki && !connections[thisIndex].wiki) {
-        connections[thisIndex].wiki = eventData.wiki;
-        // Make sure that the new connection has the correct list of tiddlers
-        // being edited.
-        wiki.tw.Bob.UpdateEditingTiddlers();
-      }
-      // Make sure we have a handler for the message type
-      if (typeof messageHandlers[eventData.messageType] === 'function') {
-        // Check authorisation
-        var authorised = authenticateMessage(eventData)
-        if (authorised) {
-          eventData.decoded = authorised
-          messageHandlers[eventData.messageType](eventData)
-        }
-        // If unauthorised just ignore it.
-      } else {
-        console.log('No handler for message of type ', eventData.messageType)
-      }
-    } catch (e) {
-      console.log("WebSocket error, probably closed connection: ", e)
+function handleMessage(event) {
+  var self = this
+  // Determine which connection the message came from
+  var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
+  try {
+    var eventData = JSON.parse(event)
+    // Add the source to the eventData object so it can be used later.
+    eventData.source_connection = thisIndex
+    if (eventData.wiki && eventData.wiki !== connections[thisIndex].wiki && !connections[thisIndex].wiki) {
+      connections[thisIndex].wiki = eventData.wiki;
+      // Make sure that the new connection has the correct list of tiddlers
+      // being edited.
+      wiki.tw.Bob.UpdateEditingTiddlers();
     }
+    // Make sure we have a handler for the message type
+    if (typeof messageHandlers[eventData.messageType] === 'function') {
+      // Check authorisation
+      var authorised = authenticateMessage(eventData)
+      if (authorised) {
+        eventData.decoded = authorised
+        messageHandlers[eventData.messageType](eventData)
+      }
+      // If unauthorised just ignore it.
+    } else {
+      console.log('No handler for message of type ', eventData.messageType)
+    }
+  } catch (e) {
+    console.log("WebSocket error, probably closed connection: ", e)
   }
 }
 
