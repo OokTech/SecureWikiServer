@@ -108,8 +108,6 @@ var init = function (server, port) {
   // connections. It is generic and extensible so you can use this same server
   // to make many different things.
   function handleConnection (client) {
-    // This imports the handlers for the example chat application.
-    var messageHandlers = require('./websocketmessagehandlers.js')
     console.log('New Connection')
     connections.push({'socket':client, 'active': true})
     client.on('message', handleMessage)
@@ -118,6 +116,8 @@ var init = function (server, port) {
 }
 
 function handleMessage(event) {
+  // This imports the handlers for the example chat application.
+  var messageHandlers = require('./websocketmessagehandlers.js')
   var self = this
   // Determine which connection the message came from
   var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
