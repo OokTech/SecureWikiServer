@@ -52,16 +52,16 @@ var init = function (server, port) {
   // This sets the handler function for the 'connection' event. This fires
   // every time a new connection is initially established.
   wss.on('connection', handleConnection)
+}
 
-  // This function sets up how the websocket server handles incomming
-  // connections. It is generic and extensible so you can use this same server
-  // to make many different things.
-  function handleConnection (client) {
-    console.log('New Connection')
-    connections.push({'socket':client, 'active': true})
-    client.on('message', handleMessage)
-    connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
-  }
+// This function sets up how the websocket server handles incomming
+// connections. It is generic and extensible so you can use this same server
+// to make many different things.
+function handleConnection (client) {
+  console.log('New Connection')
+  connections.push({'socket':client, 'active': true})
+  client.on('message', handleMessage)
+  connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
 }
 
 // Authentication function, if the token is verified it returns the decoded
