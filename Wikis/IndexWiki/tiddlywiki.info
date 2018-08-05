@@ -2,7 +2,8 @@
 	"description": "This is the demo edition for the MultiUser plugin created by OokTech",
 	"plugins": [
     "OokTech/Bob",
-    "OokTech/Login"
+    "OokTech/Login",
+    "OokTech/ServerImages"
 	],
 	"themes": [
 		"tiddlywiki/vanilla",

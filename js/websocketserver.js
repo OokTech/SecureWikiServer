@@ -2,7 +2,7 @@
   This is a generic extensible websocket server.
 
   Each message comes in as a json object. Each message has to have a
-  messageType property which names the message handler function to use.
+  type property which names the message handler function to use.
 
   The handler function is passed the message as a json object. Any
   authentication or validation is done by the message handlers.
@@ -19,6 +19,8 @@ var fs = require('fs')
 var jwt = require('jsonwebtoken')
 
 var settings = require('../LoadConfig.js')
+
+var wiki = require('../startWiki.js')
 
 // Initialise variables
 var websocketserver = {}
@@ -66,7 +68,7 @@ var init = function (server, port) {
         var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
         var decoded = jwt.verify(data.token, key)
         // Special handling for the chat thing
-        if (decoded && (data.messageType === 'announce' || data.messageType === 'credentialCheck' || (data.messageType === 'ping' && decoded.level !== 'Guest'))) {
+        if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
           return decoded
         } else if (decoded.level) {
           if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
@@ -78,7 +80,7 @@ var init = function (server, port) {
             }
             var allowed = false
             levels.forEach(function(level, index) {
-              if (settings.actions[level].indexOf(data.messageType) !== -1) {
+              if (settings.actions[level].indexOf(data.type) !== -1) {
                 allowed = decoded
               }
             })
@@ -122,6 +124,12 @@ var init = function (server, port) {
       var eventData = JSON.parse(event)
       // Add the source to the eventData object so it can be used later.
       eventData.source_connection = thisIndex
+      if (eventData.wiki && eventData.wiki !== connections[thisIndex].wiki && !connections[thisIndex].wiki) {
+        connections[thisIndex].wiki = eventData.wiki;
+        // Make sure that the new connection has the correct list of tiddlers
+        // being edited.
+        wiki.tw.Bob.UpdateEditingTiddlers();
+      }
       // Make sure we have a handler for the message type
       if (typeof messageHandlers[eventData.messageType] === 'function') {
         // Check authorisation
