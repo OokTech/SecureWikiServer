@@ -132,16 +132,16 @@ function handleMessage(event) {
       wiki.tw.Bob.UpdateEditingTiddlers();
     }
     // Make sure we have a handler for the message type
-    if (typeof messageHandlers[eventData.messageType] === 'function') {
+    if (typeof messageHandlers[eventData.type] === 'function') {
       // Check authorisation
       var authorised = authenticateMessage(eventData)
       if (authorised) {
         eventData.decoded = authorised
-        messageHandlers[eventData.messageType](eventData)
+        messageHandlers[eventData.type](eventData)
       }
       // If unauthorised just ignore it.
     } else {
-      console.log('No handler for message of type ', eventData.messageType)
+      console.log('No handler for message of type ', eventData.type)
     }
   } catch (e) {
     console.log("WebSocket error, probably closed connection: ", e)
