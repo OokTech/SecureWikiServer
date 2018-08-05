@@ -53,57 +53,6 @@ var init = function (server, port) {
   // every time a new connection is initially established.
   wss.on('connection', handleConnection)
 
-
-  // Authentication function, if the token is verified it returns the decoded
-  // token payload, otherwise returns false.
-  // Not being authenticated doesn't mean that the request fails because we
-  // can have public actions, or different levels of authentication for
-  // different actions.
-  function authenticateMessage(data) {
-    if (data.token) {
-      try {
-        settings = settings || {}
-        settings.wikis = settings.wikis || {}
-        settings.wikis[data.wiki] = settings.wikis[data.wiki] || {}
-        var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
-        var decoded = jwt.verify(data.token, key)
-        // Special handling for the chat thing
-        if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
-          return decoded
-        } else if (decoded.level) {
-          if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
-            var levels = settings.wikis[data.wiki].access[decoded.level] || []
-            // If the logged in person is the wiki owner than add the 'owner'
-            // level to the list of permissions
-            if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner) {
-              levels.push('owner')
-            }
-            var allowed = false
-            levels.forEach(function(level, index) {
-              if (settings.actions[level].indexOf(data.type) !== -1) {
-                allowed = decoded
-              }
-            })
-            return allowed
-          } else {
-            // The attempted operation isn't allowed by the persons
-            // authorisation level.
-            return false
-          }
-        } else {
-          // No authorisation level included in the token
-          return false
-        }
-      } catch (e) {
-        // Error getting private key or something similar
-        return false
-      }
-    } else {
-      // No token
-      return false
-    }
-  }
-
   // This function sets up how the websocket server handles incomming
   // connections. It is generic and extensible so you can use this same server
   // to make many different things.
@@ -112,6 +61,56 @@ var init = function (server, port) {
     connections.push({'socket':client, 'active': true})
     client.on('message', handleMessage)
     connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
+  }
+}
+
+// Authentication function, if the token is verified it returns the decoded
+// token payload, otherwise returns false.
+// Not being authenticated doesn't mean that the request fails because we
+// can have public actions, or different levels of authentication for
+// different actions.
+function authenticateMessage(data) {
+  if (data.token) {
+    try {
+      settings = settings || {}
+      settings.wikis = settings.wikis || {}
+      settings.wikis[data.wiki] = settings.wikis[data.wiki] || {}
+      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var decoded = jwt.verify(data.token, key)
+      // Special handling for the chat thing
+      if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
+        return decoded
+      } else if (decoded.level) {
+        if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
+          var levels = settings.wikis[data.wiki].access[decoded.level] || []
+          // If the logged in person is the wiki owner than add the 'owner'
+          // level to the list of permissions
+          if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner) {
+            levels.push('owner')
+          }
+          var allowed = false
+          levels.forEach(function(level, index) {
+            if (settings.actions[level].indexOf(data.type) !== -1) {
+              allowed = decoded
+            }
+          })
+          return allowed
+        } else {
+          // The attempted operation isn't allowed by the persons
+          // authorisation level.
+          return false
+        }
+      } else {
+        // No authorisation level included in the token
+        return false
+      }
+    } catch (e) {
+      // Error getting private key or something similar
+      return false
+    }
+  } else {
+    // No token
+    return false
   }
 }
 
