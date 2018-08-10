@@ -1,4 +1,5 @@
 {
+  "includePluginList": ["OokTech/Login","OokTech/ServerImages"],
   "wikis": {
     "AWiki": "./Wikis/AWiki",
     "Docs": "./Wikis/Docs",
