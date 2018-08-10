@@ -143,3 +143,4 @@ var messageHandlers = require('./js/websocketmessagehandlers.js')
 
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
+wiki.tw.Bob.handleMessage = wsserver.handleMessage

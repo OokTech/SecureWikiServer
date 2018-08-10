@@ -18,3 +18,6 @@
   /upload that can be used to upload files.
   - To go along with this there is now a new `upload` permission that gives a
     person upload privileges for a wiki
+- Added initial support for being able to reconnect and resync a wiki after
+  being disconnected.
+  - Message permissions still need to be updated!

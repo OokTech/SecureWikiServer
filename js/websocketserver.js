@@ -52,98 +52,101 @@ var init = function (server, port) {
   // This sets the handler function for the 'connection' event. This fires
   // every time a new connection is initially established.
   wss.on('connection', handleConnection)
+}
 
+// This function sets up how the websocket server handles incomming
+// connections. It is generic and extensible so you can use this same server
+// to make many different things.
+function handleConnection (client) {
+  console.log('New Connection')
+  connections.push({'socket':client, 'active': true})
+  client.on('message', handleMessage)
+  connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
+}
 
-  // Authentication function, if the token is verified it returns the decoded
-  // token payload, otherwise returns false.
-  // Not being authenticated doesn't mean that the request fails because we
-  // can have public actions, or different levels of authentication for
-  // different actions.
-  function authenticateMessage(data) {
-    if (data.token) {
-      try {
-        settings = settings || {}
-        settings.wikis = settings.wikis || {}
-        settings.wikis[data.wiki] = settings.wikis[data.wiki] || {}
-        var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
-        var decoded = jwt.verify(data.token, key)
-        // Special handling for the chat thing
-        if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
-          return decoded
-        } else if (decoded.level) {
-          if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
-            var levels = settings.wikis[data.wiki].access[decoded.level] || []
-            // If the logged in person is the wiki owner than add the 'owner'
-            // level to the list of permissions
-            if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner) {
-              levels.push('owner')
-            }
-            var allowed = false
-            levels.forEach(function(level, index) {
-              if (settings.actions[level].indexOf(data.type) !== -1) {
-                allowed = decoded
-              }
-            })
-            return allowed
-          } else {
-            // The attempted operation isn't allowed by the persons
-            // authorisation level.
-            return false
+// Authentication function, if the token is verified it returns the decoded
+// token payload, otherwise returns false.
+// Not being authenticated doesn't mean that the request fails because we
+// can have public actions, or different levels of authentication for
+// different actions.
+function authenticateMessage(data) {
+  if (data.token) {
+    try {
+      settings = settings || {}
+      settings.wikis = settings.wikis || {}
+      settings.wikis[data.wiki] = settings.wikis[data.wiki] || {}
+      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var decoded = jwt.verify(data.token, key)
+      // Special handling for the chat thing
+      if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
+        return decoded
+      } else if (decoded.level) {
+        if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
+          var levels = settings.wikis[data.wiki].access[decoded.level] || []
+          // If the logged in person is the wiki owner than add the 'owner'
+          // level to the list of permissions
+          if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner) {
+            levels.push('owner')
           }
+          var allowed = false
+          levels.forEach(function(level, index) {
+            if (settings.actions[level].indexOf(data.type) !== -1) {
+              allowed = decoded
+            }
+          })
+          return allowed
         } else {
-          // No authorisation level included in the token
+          // The attempted operation isn't allowed by the persons
+          // authorisation level.
           return false
         }
-      } catch (e) {
-        // Error getting private key or something similar
+      } else {
+        // No authorisation level included in the token
         return false
       }
-    } else {
-      // No token
+    } catch (e) {
+      // Error getting private key or something similar
       return false
     }
+  } else {
+    // No token
+    return false
   }
+}
 
   // This function sets up how the websocket server handles incomming
-  // connections. It is generic and extensible so you can use this same server
+  // messages. It is generic and extensible so you can use this same server
   // to make many different things.
-  function handleConnection (client) {
-    // This imports the handlers for the example chat application.
-    var messageHandlers = require('./websocketmessagehandlers.js')
-    console.log('New Connection')
-    connections.push({'socket':client, 'active': true, 'wiki': undefined})
-    client.on('message', function incoming(event) {
-      var self = this
-      // Determine which connection the message came from
-      var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
-      try {
-        var eventData = JSON.parse(event)
-        // Add the source to the eventData object so it can be used later.
-        eventData.source_connection = thisIndex
-        if (eventData.wiki && eventData.wiki !== connections[thisIndex].wiki && !connections[thisIndex].wiki) {
-          connections[thisIndex].wiki = eventData.wiki;
-          // Make sure that the new connection has the correct list of tiddlers
-          // being edited.
-          wiki.tw.Bob.UpdateEditingTiddlers();
-        }
-        // Make sure we have a handler for the message type
-        if (typeof messageHandlers[eventData.type] === 'function') {
-          // Check authorisation
-          var authorised = authenticateMessage(eventData)
-          if (authorised) {
-            eventData.decoded = authorised
-            messageHandlers[eventData.type](eventData)
-          }
-          // If unauthorised just ignore it.
-        } else {
-          console.log(eventData)
-          console.log('No handler for message of type ', eventData.type)
-        }
-      } catch (e) {
-        console.log("WebSocket error, probably closed connection: ", e)
+function handleMessage(event) {
+  // This imports the handlers for the example chat application.
+  var messageHandlers = require('./websocketmessagehandlers.js')
+  var self = this
+  // Determine which connection the message came from
+  var thisIndex = connections.findIndex(function(connection) {return connection.socket === self})
+  try {
+    var eventData = JSON.parse(event)
+    // Add the source to the eventData object so it can be used later.
+    eventData.source_connection = thisIndex
+    if (eventData.wiki && eventData.wiki !== connections[thisIndex].wiki && !connections[thisIndex].wiki) {
+      connections[thisIndex].wiki = eventData.wiki;
+      // Make sure that the new connection has the correct list of tiddlers
+      // being edited.
+      wiki.tw.Bob.UpdateEditingTiddlers();
+    }
+    // Make sure we have a handler for the message type
+    if (typeof messageHandlers[eventData.type] === 'function') {
+      // Check authorisation
+      var authorised = authenticateMessage(eventData)
+      if (authorised) {
+        eventData.decoded = authorised
+        messageHandlers[eventData.type](eventData)
       }
-    })
-    connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
+      // If unauthorised just ignore it.
+    } else {
+      console.log('No handler for message of type ', eventData.type)
+    }
+  } catch (e) {
+    console.log("WebSocket error, probably closed connection: ", e)
   }
 }
 
@@ -154,3 +157,4 @@ var init = function (server, port) {
 module.exports = websocketserver
 module.exports.init = init
 module.exports.connections = connections
+module.exports.handleMessage = handleMessage
