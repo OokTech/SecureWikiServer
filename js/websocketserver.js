@@ -61,7 +61,10 @@ function handleConnection (client) {
   console.log('New Connection')
   connections.push({'socket':client, 'active': true})
   client.on('message', handleMessage)
-  connections[Object.keys(connections).length-1].index = [Object.keys(connections).length-1]
+  connections[Object.keys(connections).length-1].index = (Object.keys(connections).length-1)
+  //Maybe send the list tiddlers message here
+  var message = {type: 'listTiddlers'}
+  wiki.tw.Bob.SendToBrowser(connections[Object.keys(connections).length-1], message);
 }
 
 // Authentication function, if the token is verified it returns the decoded

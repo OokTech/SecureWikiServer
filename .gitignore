@@ -11,3 +11,4 @@ Local.toml
 .DS_Store
 *.pid
 test.sh
+Plugins/

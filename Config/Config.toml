@@ -36,17 +36,17 @@ rootWikiName="IndexWiki"
       Admin=["view", "edit", "admin", "upload"]
 [actions]
   # These are the actions needed to be able to view a wiki and get updates
-  view=["browserTiddlerList", "test", "ping", "pong"]
+  view=["browserTiddlerList", "test", "ping", "pong", "ack"]
   # These are the actions needed to edit a wiki
-  edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler"]
+  edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "ack"]
   # These are general admin actions
-  admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer", "unloadWiki"]
+  admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer", "unloadWiki", "ack"]
   # Scripts is special because it lets you run shell scripts. Be careful with
   # this one!
   scripts=["runScript"]
   # Owner is a special class that applies to the person who made the wiki.
   # Even if they don't belong to any groups they have special permissions for
   # that wiki.
-  owner=["browserTiddlerList", "test", "ping", "pong", "saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "unloadWiki"]
+  owner=["browserTiddlerList", "test", "ping", "pong", "saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "unloadWiki", "ack"]
   # Uploads are done using http(s) so there don't need to be any actions listed here.
   upload=[]
