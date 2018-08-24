@@ -53,6 +53,41 @@ wiki.tw.boot.boot()
 var unauthorised = "<html><p>You don't have the authorisation to view this wiki.</p> <p><a href='/'>Return to login</a></p></html>"
 
 /*
+  This is a generic function to check if a person has a permission on a wiki
+  based on the token they sent.
+*/
+function checkPermission (response, fullName, permission) {
+  settings = require('./LoadConfig.js')
+  settings.wikis = settings.wikis || {}
+  settings.wikis[fullName] = settings.wikis[fullName] || {}
+  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
+  // If the wiki is set as public than anyone can view it
+  if (settings.wikis[fullName].public && permission === 'view') {
+    return true
+  } else if (response.decoded) {
+    // If the logged in person is the owner than they can view and edit it
+    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
+      return true
+    } else if (settings.wikis[fullName].access[response.decoded.level]) {
+      // If the logged in level of the person can view the wiki than they
+      // can view it.
+      if (settings.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
+        return true
+      } else {
+        // No view permissions given to the logged in level
+        return false
+      }
+    } else {
+      // No access for the logged in level
+      return false
+    }
+  } else {
+    // No valid token was supplied
+    return false
+  }
+}
+
+/*
   This checks to see if the person has viewing permissions.
   Other permisions (edit, etc.) are checked when the person tries to use them.
 */
@@ -193,6 +228,143 @@ var addRoutes = function () {
       response.end(buffer,"base64");
     }
   })
+
+  settings.API = settings.API || {}
+  // Check bodyData and response.decoded to see if pushing is allowed
+  function canPushToWiki(bodyData, response) {
+    // Check if the token response.decoded gives write access to bodyData.toWiki
+    settings = require('./LoadConfig.js')
+    settings.wikis = settings.wikis || {}
+    settings.wikis[fullName] = settings.wikis[fullName] || {}
+    settings.wikis[fullName].access = settings.wikis[fullName].access || {}
+    if (response.decoded) {
+      if (settings.wikis[fullName].access[response.decoded.level]) {
+        if (settings.wikis[fullName].access[response.decoded.level].indexOf("edit") !== -1) {
+          // If the person is authenticated and has upload permissions on this
+          // wiki than allow uploads.
+          return true
+        } else {
+          // No upload permissions given to the logged in level
+          return false
+        }
+      } else {
+        // No access for this wiki at the authenticated level
+        return false
+      }
+    } else {
+      // Unauthenticated people can't upload things.
+      return false
+    }
+  }
+  if (settings.API.enableFetch === 'yes') {
+    wiki.router.post('/api/fetch', function(request, response) {
+      var body = ''
+      var list
+      var data = {}
+      response.setHeader('Access-Control-Allow-Origin', '*')
+      response.writeHead(200, {"Content-Type": "application/json"});
+      try {
+        var bodyData = JSON.parse(request.body.message)
+        hasAccess = checkAuthorisation(response, bodyData.fromWiki)
+        if (hasAccess) {
+          if (bodyData.filter && bodyData.fromWiki) {
+            // Make sure that the wiki is listed
+            if (wiki.tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
+              if (!wiki.tw.Bob.Wikis) {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.boot.wikiPath);
+              }
+              // If the wiki isn't loaded than load it
+              if (!wiki.tw.Bob.Wikis[bodyData.fromWiki]) {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.settings.wikis[bodyData.fromWiki]);
+              } else if (wiki.tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.settings.wikis[bodyData.fromWiki]);
+              }
+              // Make sure that the wiki exists and is loaded
+              if (wiki.tw.Bob.Wikis[bodyData.fromWiki]) {
+                if (wiki.tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
+                  // Make a temp wiki to run the filter on
+                  var tempWiki = new wiki.tw.Wiki();
+                  wiki.tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
+                    var tiddler = wiki.tw.wiki.getTiddler(internalTitle);
+                    var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                    newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                    newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                    newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                    // Add all the tiddlers that belong in wiki
+                    tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                  })
+                  // Use the filter
+                  list = tempWiki.filterTiddlers(bodyData.filter);
+                }
+              }
+            }
+            var tiddlers = {}
+            list.forEach(function(title) {
+              tiddlers[title] = tempWiki.getTiddler(title)
+            })
+            // Send the tiddlers
+            data = {list: list, tiddlers: tiddlers}
+            data = JSON.stringify(data) || "";
+            response.end(data);
+          }
+        }
+      } catch (e) {
+        data = JSON.stringify(data) || "";
+        response.end(data);
+      }
+    })
+  }
+
+  if (settings.API.enablePush === 'yes') {
+    wiki.router.post('/api/push', function(request, response) {
+      //var authenticated = isAuthenticated(request)
+      // Authentication is checked before the request gets to the wiki part
+      if (true) {
+        var body = ''
+        request.on('data', function(chunk){
+          body += chunk;
+          // We limit the size of a push to 5mb for now.
+          if (body.length > 5e6) {
+            response.writeHead(413, {'Content-Type': 'text/plain'}).end();
+            request.connection.destroy();
+          }
+        });
+        request.on('end', function() {
+          try {
+            var bodyData = JSON.parse(body)
+            // Make sure that the token sent here matches the https header
+            // and that the token has push access to the toWiki
+            var allowed = canPushToWiki(bodyData, response)
+            if (allowed) {
+              if (wiki.tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
+                wiki.tw.ServerSide.loadWiki(bodyData.toWiki, wiki.tw.settings.wikis[bodyData.toWiki]);
+                // Make sure that the wiki exists and is loaded
+                if (wiki.tw.Bob.Wikis[bodyData.toWiki]) {
+                  if (wiki.tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
+                    if (bodyData.tiddlers && bodyData.toWiki) {
+                      Object.keys(bodyData.tiddlers).forEach(function(title) {
+                        bodyData.tiddlers[title].fields.modified = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
+                        bodyData.tiddlers[title].fields.created = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
+                        wiki.tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
+                      });
+                      response.writeHead(200)
+                      response.end()
+                    }
+                  }
+                }
+              }
+            } else {
+              response.writeHead(400)
+              response.end()
+            }
+          } catch (e) {
+            response.writeHead(400)
+            response.end()
+          }
+        })
+      }
+    })
+  }
 
   wiki.router.get('/:wikiName', function(request, response) {
     // Make sure that the logged in person is authorised to access the wiki

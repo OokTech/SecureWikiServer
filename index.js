@@ -49,7 +49,7 @@ function checkAuthentication (req, res, next) {
   // check if the wiki is public first
   settings.wikis = settings.wikis || {}
   settings.wikis[wikiName] = settings.wikis[wikiName] || {}
-  if (settings.wikis[wikiName].public) {
+  if (settings.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
     return next()
   } else {
     // If the wiki isn't public than check if there is a valid token
