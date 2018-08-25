@@ -5,6 +5,7 @@ wiki.router = express.Router()
 
 const path = require('path')
 const fs = require('fs')
+const jwt = require('jsonwebtoken')
 
 /*
   This next block lets us set environment variables from the config files
@@ -235,11 +236,13 @@ var addRoutes = function () {
     // Check if the token response.decoded gives write access to bodyData.toWiki
     settings = require('./LoadConfig.js')
     settings.wikis = settings.wikis || {}
-    settings.wikis[fullName] = settings.wikis[fullName] || {}
-    settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-    if (response.decoded) {
-      if (settings.wikis[fullName].access[response.decoded.level]) {
-        if (settings.wikis[fullName].access[response.decoded.level].indexOf("edit") !== -1) {
+    settings.wikis[bodyData.toWiki] = settings.wikis[bodyData.toWiki] || {}
+    settings.wikis[bodyData.toWiki].access = settings.wikis[bodyData.toWiki].access || {}
+    var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+    var decoded = jwt.verify(bodyData.token, key)
+    if (decoded) {
+      if (settings.wikis[bodyData.toWiki].access[decoded.level]) {
+        if (settings.wikis[bodyData.toWiki].access[decoded.level].indexOf("edit") !== -1) {
           // If the person is authenticated and has upload permissions on this
           // wiki than allow uploads.
           return true
@@ -256,6 +259,33 @@ var addRoutes = function () {
       return false
     }
   }
+  function canFetchFromwiki (bodyData, response) {
+    // Check if the token response.decoded gives view access to
+    // bodyData.fromWiki
+    settings = require('./LoadConfig.js')
+    settings.wikis = settings.wikis || {}
+    settings.wikis[bodyData.fromWiki] = settings.wikis[bodyData.fromWiki] || {}
+    settings.wikis[bodyData.fromWiki].access = settings.wikis[bodyData.fromWiki].access || {}
+    var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+    var decoded = jwt.verify(bodyData.token, key)
+    if (decoded) {
+      if (settings.wikis[bodyData.fromWiki].access[decoded.level]) {
+        if (settings.wikis[bodyData.fromWiki].access[decoded.level].indexOf("view") !== -1) {
+          // If the person is authenticated and has upload permissions on this
+          // wiki than allow uploads.
+          return true
+        } else {
+          // No upload permissions given to the logged in level
+          return false
+        }
+      } else {
+        // No access for this wiki at the authenticated level
+        return false
+      }
+    } else {
+      return false
+    }
+  }
   if (settings.API.enableFetch === 'yes') {
     wiki.router.post('/api/fetch', function(request, response) {
       var body = ''
@@ -265,7 +295,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        hasAccess = checkAuthorisation(response, bodyData.fromWiki)
+        hasAccess = canFetchFromwiki(bodyData, response)
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -307,61 +337,54 @@ var addRoutes = function () {
             data = JSON.stringify(data) || "";
             response.end(data);
           }
+        } else {
+          // Don't have access
+          data = "";
+          response.status(403);
+          response.end(false);
         }
       } catch (e) {
         data = JSON.stringify(data) || "";
         response.end(data);
       }
+      response.status(403);
+      response.end()
     })
   }
 
   if (settings.API.enablePush === 'yes') {
     wiki.router.post('/api/push', function(request, response) {
-      //var authenticated = isAuthenticated(request)
-      // Authentication is checked before the request gets to the wiki part
-      if (true) {
-        var body = ''
-        request.on('data', function(chunk){
-          body += chunk;
-          // We limit the size of a push to 5mb for now.
-          if (body.length > 5e6) {
-            response.writeHead(413, {'Content-Type': 'text/plain'}).end();
-            request.connection.destroy();
-          }
-        });
-        request.on('end', function() {
-          try {
-            var bodyData = JSON.parse(body)
-            // Make sure that the token sent here matches the https header
-            // and that the token has push access to the toWiki
-            var allowed = canPushToWiki(bodyData, response)
-            if (allowed) {
-              if (wiki.tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
-                wiki.tw.ServerSide.loadWiki(bodyData.toWiki, wiki.tw.settings.wikis[bodyData.toWiki]);
-                // Make sure that the wiki exists and is loaded
-                if (wiki.tw.Bob.Wikis[bodyData.toWiki]) {
-                  if (wiki.tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
-                    if (bodyData.tiddlers && bodyData.toWiki) {
-                      Object.keys(bodyData.tiddlers).forEach(function(title) {
-                        bodyData.tiddlers[title].fields.modified = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
-                        bodyData.tiddlers[title].fields.created = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
-                        wiki.tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
-                      });
-                      response.writeHead(200)
-                      response.end()
-                    }
-                  }
+      response.setHeader('Access-Control-Allow-Origin', '*')
+      try {
+        var bodyData = JSON.parse(request.body.message)
+        // Make sure that the token sent here matches the https header
+        // and that the token has push access to the toWiki
+        var allowed = canPushToWiki(bodyData, response)
+        if (allowed) {
+          if (wiki.tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
+            wiki.tw.ServerSide.loadWiki(bodyData.toWiki, wiki.tw.settings.wikis[bodyData.toWiki]);
+            // Make sure that the wiki exists and is loaded
+            if (wiki.tw.Bob.Wikis[bodyData.toWiki]) {
+              if (wiki.tw.Bob.Wikis[bodyData.toWiki].State === 'loaded') {
+                if (bodyData.tiddlers && bodyData.toWiki) {
+                  Object.keys(bodyData.tiddlers).forEach(function(title) {
+                    bodyData.tiddlers[title].fields.modified = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.modified));
+                    bodyData.tiddlers[title].fields.created = wiki.tw.utils.stringifyDate(new Date(bodyData.tiddlers[title].fields.created));
+                    wiki.tw.syncadaptor.saveTiddler(bodyData.tiddlers[title], bodyData.toWiki);
+                  });
+                  response.writeHead(200)
+                  response.end()
                 }
               }
-            } else {
-              response.writeHead(400)
-              response.end()
             }
-          } catch (e) {
-            response.writeHead(400)
-            response.end()
           }
-        })
+        } else {
+          response.writeHead(400)
+          response.end()
+        }
+      } catch (e) {
+        response.writeHead(403)
+        response.end()
       }
     })
   }

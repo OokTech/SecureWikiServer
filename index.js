@@ -73,6 +73,8 @@ app.post('/authenticate', function (req, res) {
   // Get the authentication heanders and stuff
   // Check to make sure the header send a name and password
   if (req.body.name && req.body.pwd) {
+    // Set headers
+    res.setHeader('Access-Control-Allow-Origin', '*')
     try {
       // Get the stored hash
       var info = JSON.parse(fs.readFileSync(path.join(path.dirname(require.main.filename), 'people', req.body.name, 'info.hash'), {encoding: 'utf8'}))
@@ -85,6 +87,7 @@ app.post('/authenticate', function (req, res) {
           // Sign the token using the rsa private key of the server
           var key = fs.readFileSync(path.join(baseDir, settings.tokenPrivateKeyPath))
           var token = jwt.sign({level: info.level, name: req.body.name}, key, {expiresIn: settings.tokenTTL})
+          res.status(200)
           // Send the token back
           res.send(token)
         } else {
