@@ -286,6 +286,73 @@ var addRoutes = function () {
       return false
     }
   }
+  if (settings.API.pluginLibrary === 'yes') {
+    // List the available plugins
+    /*
+      The response is a pluginInfoList where:
+      pluginInfoList = [pluginInfo]
+      pluginInfo = {name, tiddlerName, version, readme}
+    */
+    wiki.router.post('/api/plugins/list', function(request, response) {
+      var wikiPluginsPath = path.resolve(require('os').homedir(), settings.pluginsPath, './OokTech')
+      var pluginList = []
+    	if(fs.existsSync(wikiPluginsPath)) {
+    		var pluginFolders = fs.readdirSync(wikiPluginsPath)
+    		for(var t=0; t<pluginFolders.length; t++) {
+    			pluginFields = wiki.tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]))
+    			if(pluginFields) {
+            var readme = ""
+    				try {
+              //console.log(Object.keys(pluginFields.text))
+              // Try pulling out the plugin readme
+              var pluginJSON = JSON.parse(pluginFields.text).tiddlers
+              readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
+                return title.toLowerCase().endsWith('/readme')
+              })[0]]
+            } catch (e) {
+              console.log('Error parsing plugin', e)
+            }
+            if (readme) {
+              readmeText = readme.text
+            } else {
+              readmeText = ''
+            }
+            var listInfo = {
+              name: pluginFields.description,
+              tiddlerName: pluginFields.title,
+              version: pluginFields.version,
+              author: pluginFields.author,
+              readme: readmeText
+            }
+            pluginList.push(listInfo)
+    			}
+    		}
+    	}
+      response.setHeader('Access-Control-Allow-Origin', '*')
+      response.status(200)
+      response.end(JSON.stringify(pluginList))
+    })
+    // Fetch a specific plugin
+    wiki.router.post('/api/plugins/:author/:pluginName', function(request, response) {
+      var wikiPluginsPath = path.resolve(require('os').homedir(), settings.pluginsPath, request.params.author, request.params.pluginName)
+      // Make sure that we don't allow url tricks to access things people
+      // aren't supposed to
+      if (wikiPluginsPath.startsWith(path.resolve(require('os').homedir(), settings.pluginsPath))) {
+        var pluginFields = wiki.tw.loadPluginFolder(wikiPluginsPath)
+        if (pluginFields) {
+          response.setHeader('Access-Control-Allow-Origin', '*')
+          response.status(200)
+          response.end(JSON.stringify(pluginFields))
+        } else {
+          response.status(403)
+          response.end()
+        }
+      } else {
+        response.status(403)
+        response.end()
+      }
+    })
+  }
   if (settings.API.enableFetch === 'yes') {
     wiki.router.post('/api/fetch', function(request, response) {
       var body = ''
