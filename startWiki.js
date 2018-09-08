@@ -266,24 +266,29 @@ var addRoutes = function () {
     settings.wikis = settings.wikis || {}
     settings.wikis[bodyData.fromWiki] = settings.wikis[bodyData.fromWiki] || {}
     settings.wikis[bodyData.fromWiki].access = settings.wikis[bodyData.fromWiki].access || {}
-    var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
-    var decoded = jwt.verify(bodyData.token, key)
-    if (decoded) {
-      if (settings.wikis[bodyData.fromWiki].access[decoded.level]) {
-        if (settings.wikis[bodyData.fromWiki].access[decoded.level].indexOf("view") !== -1) {
-          // If the person is authenticated and has upload permissions on this
-          // wiki than allow uploads.
-          return true
+    // People can fetch from public wikis without authentication
+    if (settings.wikis[bodyData.fromWiki].public) {
+      return true
+    } else {
+      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var decoded = jwt.verify(bodyData.token, key)
+      if (decoded) {
+        if (settings.wikis[bodyData.fromWiki].access[decoded.level]) {
+          if (settings.wikis[bodyData.fromWiki].access[decoded.level].indexOf("view") !== -1) {
+            // If the person is authenticated and has upload permissions on this
+            // wiki than allow uploads.
+            return true
+          } else {
+            // No upload permissions given to the logged in level
+            return false
+          }
         } else {
-          // No upload permissions given to the logged in level
+          // No access for this wiki at the authenticated level
           return false
         }
       } else {
-        // No access for this wiki at the authenticated level
         return false
       }
-    } else {
-      return false
     }
   }
   if (settings.API.pluginLibrary === 'yes') {
