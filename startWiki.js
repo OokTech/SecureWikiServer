@@ -361,6 +361,65 @@ var addRoutes = function () {
     })
   }
   if (settings.API.enableFetch === 'yes') {
+    wiki.router.post('/api/fetch/list', function(request, response) {
+      var body = ''
+      var list
+      var data = {}
+      response.setHeader('Access-Control-Allow-Origin', '*')
+      response.writeHead(200, {"Content-Type": "application/json"});
+      try {
+        var bodyData = JSON.parse(request.body.message)
+        hasAccess = canFetchFromwiki(bodyData, response)
+        if (hasAccess) {
+          if (bodyData.filter && bodyData.fromWiki) {
+            // Make sure that the wiki is listed
+            if (wiki.tw.settings.wikis[bodyData.fromWiki] || bodyData.fromWiki === 'RootWiki') {
+              if (!wiki.tw.Bob.Wikis) {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.boot.wikiPath);
+              }
+              // If the wiki isn't loaded than load it
+              if (!wiki.tw.Bob.Wikis[bodyData.fromWiki]) {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.settings.wikis[bodyData.fromWiki]);
+              } else if (wiki.tw.Bob.Wikis[bodyData.fromWiki].State !== 'loaded') {
+                wiki.tw.ServerSide.loadWiki(bodyData.fromWiki, wiki.tw.settings.wikis[bodyData.fromWiki]);
+              }
+              // Make sure that the wiki exists and is loaded
+              if (wiki.tw.Bob.Wikis[bodyData.fromWiki]) {
+                if (wiki.tw.Bob.Wikis[bodyData.fromWiki].State === 'loaded') {
+                  // Make a temp wiki to run the filter on
+                  var tempWiki = new wiki.tw.Wiki();
+                  wiki.tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
+                    var tiddler = wiki.tw.wiki.getTiddler(internalTitle);
+                    var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                    newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                    newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                    newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                    // Add all the tiddlers that belong in wiki
+                    tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                  })
+                  // Use the filter
+                  list = tempWiki.filterTiddlers(bodyData.filter);
+                }
+              }
+            }
+            // Send the tiddlers
+            data = {list: list}
+            data = JSON.stringify(data) || "";
+            response.end(data);
+          }
+        } else {
+          // Don't have access
+          data = "";
+          response.status(403);
+          response.end(false);
+        }
+      } catch (e) {
+        data = JSON.stringify(data) || "";
+        response.end(data);
+      }
+      response.status(403);
+      response.end()
+    })
     wiki.router.post('/api/fetch', function(request, response) {
       var body = ''
       var list
