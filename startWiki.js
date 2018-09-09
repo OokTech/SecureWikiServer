@@ -308,7 +308,6 @@ var addRoutes = function () {
     			if(pluginFields) {
             var readme = ""
     				try {
-              //console.log(Object.keys(pluginFields.text))
               // Try pulling out the plugin readme
               var pluginJSON = JSON.parse(pluginFields.text).tiddlers
               readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
@@ -322,8 +321,11 @@ var addRoutes = function () {
             } else {
               readmeText = ''
             }
+            var nameParts = pluginFields.title.split('/')
+            var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
             var listInfo = {
-              name: pluginFields.description,
+              name: name,
+              description: pluginFields.description,
               tiddlerName: pluginFields.title,
               version: pluginFields.version,
               author: pluginFields.author,
@@ -338,7 +340,7 @@ var addRoutes = function () {
       response.end(JSON.stringify(pluginList))
     })
     // Fetch a specific plugin
-    wiki.router.post('/api/plugins/:author/:pluginName', function(request, response) {
+    wiki.router.post('/api/plugins/fetch/:author/:pluginName', function(request, response) {
       var wikiPluginsPath = path.resolve(require('os').homedir(), settings.pluginsPath, request.params.author, request.params.pluginName)
       // Make sure that we don't allow url tricks to access things people
       // aren't supposed to
