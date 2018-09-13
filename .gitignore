@@ -12,3 +12,4 @@ Local.toml
 *.pid
 test.sh
 Plugins/
+output.txt
