@@ -298,43 +298,55 @@ var addRoutes = function () {
       pluginInfoList = [pluginInfo]
       pluginInfo = {name, tiddlerName, version, readme}
     */
-    wiki.router.post('/api/plugins/list', function(request, response) {
-      var wikiPluginsPath = path.resolve(require('os').homedir(), settings.pluginsPath, './OokTech')
+    var getPluginList = function () {
       var pluginList = []
-    	if(fs.existsSync(wikiPluginsPath)) {
-    		var pluginFolders = fs.readdirSync(wikiPluginsPath)
-    		for(var t=0; t<pluginFolders.length; t++) {
-    			pluginFields = wiki.tw.loadPluginFolder(path.resolve(wikiPluginsPath,"./" + pluginFolders[t]))
-    			if(pluginFields) {
-            var readme = ""
-    				try {
-              // Try pulling out the plugin readme
-              var pluginJSON = JSON.parse(pluginFields.text).tiddlers
-              readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
-                return title.toLowerCase().endsWith('/readme')
-              })[0]]
-            } catch (e) {
-              console.log('Error parsing plugin', e)
+      if (typeof settings.pluginsPath === 'string') {
+        var pluginsPath = path.resolve(settings.pluginsPath)
+        if(fs.existsSync(pluginsPath)) {
+          var pluginAuthors = fs.readdirSync(pluginsPath)
+          pluginAuthors.forEach(function (author) {
+            var pluginAuthorPath = path.join(pluginsPath, './', author)
+            if (fs.statSync(pluginAuthorPath).isDirectory()) {
+              var pluginAuthorFolders = fs.readdirSync(pluginAuthorPath)
+              for(var t=0; t<pluginAuthorFolders.length; t++) {
+                var fullPluginFolder = path.join(pluginAuthorPath,pluginAuthorFolders[t])
+                var pluginFields = wiki.tw.loadPluginFolder(fullPluginFolder)
+                if(pluginFields) {
+                  var readme = ""
+                  var readmeText = ''
+                  try {
+                    // Try pulling out the plugin readme
+                    var pluginJSON = JSON.parse(pluginFields.text).tiddlers
+                    readme = pluginJSON[Object.keys(pluginJSON).filter(function(title) {
+                      return title.toLowerCase().endsWith('/readme')
+                    })[0]]
+                  } catch (e) {
+                    console.log('Error parsing plugin', e)
+                  }
+                  if (readme) {
+                    readmeText = readme.text
+                  }
+                  var nameParts = pluginFields.title.split('/')
+                  var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
+                  var listInfo = {
+                    name: name,
+                    description: pluginFields.description,
+                    tiddlerName: pluginFields.title,
+                    version: pluginFields.version,
+                    author: pluginFields.author,
+                    readme: readmeText
+                  }
+                  pluginList.push(listInfo)
+                }
+              }
             }
-            if (readme) {
-              readmeText = readme.text
-            } else {
-              readmeText = ''
-            }
-            var nameParts = pluginFields.title.split('/')
-            var name = nameParts[nameParts.length-2] + '/' + nameParts[nameParts.length-1]
-            var listInfo = {
-              name: name,
-              description: pluginFields.description,
-              tiddlerName: pluginFields.title,
-              version: pluginFields.version,
-              author: pluginFields.author,
-              readme: readmeText
-            }
-            pluginList.push(listInfo)
-    			}
-    		}
-    	}
+          })
+        }
+      }
+      return pluginList
+    }
+    wiki.router.post('/api/plugins/list', function(request, response) {
+      var pluginList = getPluginList()
       response.setHeader('Access-Control-Allow-Origin', '*')
       response.status(200)
       response.end(JSON.stringify(pluginList))

@@ -118,7 +118,7 @@ if (settings.serveWikiOnRoot === true ) {
   })
 
   app.get('/settings', function (req, res) {
-    res.send({'wssPort': settings.wssPort})
+    res.send({'wssPort': settings.httpsPort})
   })
 
   app.get('/', function (req, res) {
@@ -133,14 +133,13 @@ var options = {
   cert: fs.readFileSync(certpath)
 }
 
-https.createServer(options, app).listen(settings.httpsPort)
+var server = https.createServer(options, app).listen(settings.httpsPort)
 console.log(`HTTPS server on ${settings.httpsPort}`)
 
-// Create the websocket server on port listed in settings.wssPort
+// Create the websocket server
 var wsserver = require('./js/websocketserver.js')
-var httpsServer = https.createServer(options).listen(settings.wssPort)
-wsserver.init(httpsServer)
-console.log(`WSServer on ${settings.wssPort}`)
+// Set the websocket server to use the https server
+wsserver.init(server)
 
 var messageHandlers = require('./js/websocketmessagehandlers.js')
 

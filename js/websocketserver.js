@@ -27,31 +27,26 @@ var websocketserver = {}
 var connections = []
 
 /*
-  This is the init function. There are two ways to initialise the websocket
-  server, by passing a port number or by passing a server object.
-  For insecrue ws:// type servers you can use the port method, but to use
-  secure wss:// connections you need to use an https server to initialise it.
-
-  If a server is provided it is used, if not than the port number is used.
-  If neither is given than this does nothing.
-
-  To initialise using a port 8080 the function call would be
-
-  websocketserver.init(false, 8080)
+  This is the init function. It uses an existing server. Any upgrade requests
+  made to the existing server are passed to the websockets server by adding the
+  server.on('upgrade', ...)  handler.
 */
-var init = function (server, port) {
+var init = function (server) {
   // This lets you create the websocket server using a port number or an
   // existing http(s) server. To use secure websockets you need to use an
   // existing https server, otherwise it doesn't make much difference.
   var WebSocketServer = ws.Server
-  if (server) {
-    var wss = new WebSocketServer({server})
-  } else {
-    var wss = new WebSocketServer({port: port})
-  }
+  var wss = new WebSocketServer({noServer: true})
   // This sets the handler function for the 'connection' event. This fires
   // every time a new connection is initially established.
   wss.on('connection', handleConnection)
+  // Make it so websocket connections are handled by the websocket server, not
+  // the normal https server.
+  server.on('upgrade', function(request, socket, head) {
+    wss.handleUpgrade(request, socket, head, function(ws) {
+      wss.emit('connection', ws, request)
+    })
+  })
 }
 
 // This function sets up how the websocket server handles incomming
