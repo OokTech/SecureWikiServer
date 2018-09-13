@@ -1,4 +1,4 @@
-# SecureWebsocketServerTest
+# Secure Wiki Server
 
 This is an example implementation of a websocket server with authentication.
 
@@ -11,7 +11,7 @@ Each of these needs instructions and more explanation.
     `Plugins/OokTech/Bob` folder.
 - Need to make an index wiki and correctly list the path to it.
   - The wiki needs to include the Bob plugin.
-- Set the paths to the plugin, themes and editions folders
+- Set the paths to the plugin, themes and editions folders (if any)
 - Need to make sure that the .crt and private key files for the ssl part exist
   and the paths are listed correctly
 - need to make sure that the key used to sign the tokens exists
@@ -45,11 +45,12 @@ have authenticated communication with the server.
 - Update the `tokenPrivateKeyPath` to point to your private key. It just
   occurred to me that you can use the same key as the signing key for the
   certificate.
-- If you want you can change the `httpsPort` and `wssPort` values also.
-- Run `node ./index.js`
+- If you want you can change the `httpsPort` value also.
+- Run `./start.sh`
 - Go to the url of your server on the needed port. So if your server is
   `www.example.com` and `httpsPort` is left as the default `8443`, then you go
   to `www.example.com:8443`.
+- To stop the wiki server run `./stop.sh`
 
 ## Components
 

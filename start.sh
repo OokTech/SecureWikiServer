@@ -6,8 +6,18 @@
 # without trouble is stop.sh
 source ../.bashrc
 
-nohup node ./index.js &
+OLDPID=$(cat wikiserver.pid)
 
-PID=$!
+# Check to make sure that the process isn't already running before trying to
+# start it
+if [ -n "$(ps -p $OLDPID -o pid=)" ]; then
+  echo "Server is already running with PID $OLDPID"
+else
+  nohup node ./index.js &
 
-echo $PID > wikiserver.pid
+  PID=$!
+
+  echo $PID > wikiserver.pid
+
+  echo "Server is running with PID $PID"
+fi

@@ -12,11 +12,14 @@ to.
 
 - `view` - the person can view the wiki.
 - `edit` - the person can make changes to the wiki.
-- `admin` - the person can make changes to the wiki settings, make new wikis, make
-single file wikis from all or some of the wikis tiddler, stop the wiki server
+- `admin` - the person can make changes to the wiki settings, make new wikis,
+  make single file wikis from all or some of the wikis tiddler, stop the wiki
+  server
 - `script` - the person can use the wiki to trigger shell scripts
 - `owner` - reserved for only the owner of the wiki. It grants the same
   privlidges as `view` and `edit` in addition to the `unloadWiki` message.
+- `upload` - a special privlidge that lets you upload non-tiddler files (like
+  media files)
 
 A wiki has an owner. The owner always has view, edit and admin permissions.
 
