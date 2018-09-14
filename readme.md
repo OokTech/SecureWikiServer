@@ -1,6 +1,7 @@
 # Secure Wiki Server
 
-This is an example implementation of a websocket server with authentication.
+This is a server that can be used to serve TiddlyWiki online. It is made to
+work with the Bob plugin.
 
 ## Setup concerns
 
