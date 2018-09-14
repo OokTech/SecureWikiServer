@@ -7,6 +7,7 @@ work with the Bob plugin.
 
 Each of these needs instructions and more explanation.
 
+- You should never edit `Config.toml`, use `Local.toml`
 - Make sure that the sub-modules are properly initialised and updated.
   - At the moment this is just tiddlywiki in the `TiddlyWiki5` folder
 - Need to make an index wiki and correctly list the path to it.
@@ -44,8 +45,12 @@ have authenticated communication with the server.
 - `npm install` to install all the dependencies
 - Make sure you have the certificate files on the server (instructions to make
   your own self signed certs here: https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs)
-- Update `certPath` and `serverKeyPath` in the `Config.toml` file in the
+- Update `certPath` and `serverKeyPath` in the `Local.toml` file in the
   `Config` folder to point to the certificate and key files.
+  - You will have to create the `Local.toml` file.
+  - Never edit `Config.toml`, settings in `Local.toml` override `Config.toml`
+    so just make the same entry in `Local.toml` if you want to change a default
+    setting.
 - If needed generate a public-private key pair for token signing
 - Update the `tokenPrivateKeyPath` to point to your private key. It just
   occurred to me that you can use the same key as the signing key for the
