@@ -1,3 +1,5 @@
+- The start.sh script now checks to make sure that the process isn't already
+  running before trying to start it.
 - The start.sh and stop.sh scripts now use a pid file to make sure that the
   correct process is stopped.
 - You can now set the plugin, theme and editions paths in the config instead of

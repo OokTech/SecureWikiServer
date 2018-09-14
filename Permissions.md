@@ -30,6 +30,8 @@ wiki.
 
 These permissions are for setting ownership and permissions.
 
+They aren't used yet because I haven't made tools for this part yet
+
 What do they need to be?
 
 `Guest` - logged in as a guest
