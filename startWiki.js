@@ -414,8 +414,13 @@ var addRoutes = function () {
                 }
               }
             }
+            var info = {}
+            list.forEach(function(title) {
+              var tempTid = tempWiki.getTiddler(title)
+              info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
+            })
             // Send the tiddlers
-            data = {list: list}
+            data = {list: list, info: info}
             data = JSON.stringify(data) || "";
             response.end(data);
           }
@@ -474,11 +479,14 @@ var addRoutes = function () {
               }
             }
             var tiddlers = {}
+            var info = {}
             list.forEach(function(title) {
-              tiddlers[title] = tempWiki.getTiddler(title)
+              var tempTid = tempWiki.getTiddler(title)
+              tiddlers[title] = tempTid
+              info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
             })
             // Send the tiddlers
-            data = {list: list, tiddlers: tiddlers}
+            data = {list: list, tiddlers: tiddlers, info: info}
             data = JSON.stringify(data) || "";
             response.end(data);
           }
