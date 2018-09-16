@@ -70,8 +70,8 @@ function checkPermission (response, fullName, permission) {
     if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
       return true
     } else if (settings.wikis[fullName].access[response.decoded.level]) {
-      // If the logged in level of the person can view the wiki than they
-      // can view it.
+      // If the logged in level of the person includes the permission return
+      // true
       if (settings.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
         return true
       } else {
@@ -160,7 +160,7 @@ var addRoutes = function () {
   wiki.router.get('/', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkAuthorisation(response, 'RootWiki')
+    var authorised = checkPermission(response, 'RootWiki', 'view')
     if (authorised) {
       // Load the wiki
       wiki.tw.ServerSide.loadWiki('RootWiki', wiki.tw.boot.wikiPath)
@@ -178,7 +178,8 @@ var addRoutes = function () {
     This is for uploading media files
   */
   wiki.router.post('/upload', function (request, response) {
-    var authorised = checkUploadAuthorisation(response, request.get('x-wiki-name'))
+    //var authorised = checkUploadAuthorisation(response, request.get('x-wiki-name'))
+    var authorised = checkPermission(response, request.get('x-wiki-name'), 'upload')
     if (authorised) {
       var body = ''
       request.on('data', function (data) {
@@ -222,7 +223,7 @@ var addRoutes = function () {
   wiki.router.get('/favicon', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkAuthorisation(response, 'RootWiki')
+    var authorised = checkPermission(response, 'RootWiki', 'view')
     if (authorised) {
       response.writeHead(200, {"Content-Type": "image/x-icon"});
       var buffer = wiki.tw.wiki.getTiddlerText("$:/favicon.ico","");
@@ -544,7 +545,7 @@ var addRoutes = function () {
 
   wiki.router.get('/:wikiName', function(request, response) {
     // Make sure that the logged in person is authorised to access the wiki
-    var authorised = checkAuthorisation(response,request.params.wikiName)
+    var authorised = checkPermission(response,request.params.wikiName, 'view')
     if (authorised) {
       // Make sure we have loaded the wiki tiddlers.
       // This does nothing if the wiki is already loaded.
@@ -573,7 +574,7 @@ var addRoutes = function () {
   wiki.router.get('/:wikiName/favicon.ico', function (request, response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkAuthorisation(response, request.params.wikiName)
+    var authorised = checkPermission(response, request.params.wikiName, 'view')
     if (authorised) {
       response.writeHead(200, {"Content-Type": "image/x-icon"});
       var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","");
@@ -607,7 +608,7 @@ function loadMediaFile(request, response) {
     '.webm': 'video/webm',
     '.wav': 'audio/wav'
   }
-  var authorised = checkAuthorisation(response, wikiName)
+  var authorised = checkPermission(response, wikiName, 'view')
   if (authorised) {
     //Make sure that the file type is listed in the mimeMap
     if (wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]) {
