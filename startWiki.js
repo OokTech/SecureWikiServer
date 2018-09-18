@@ -418,7 +418,14 @@ var addRoutes = function () {
             var info = {}
             list.forEach(function(title) {
               var tempTid = tempWiki.getTiddler(title)
-              info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
+              info[title] = {}
+              if (bodyData.fieldList) {
+                bodyData.fieldList.split(' ').forEach(function(field) {
+                  info[title][field] = tempTid.fields.field;
+                })
+              } else {
+                info[title]['modified'] = tempTid.fields.modified;
+              }
             })
             // Send the tiddlers
             data = {list: list, info: info}
@@ -484,7 +491,14 @@ var addRoutes = function () {
             list.forEach(function(title) {
               var tempTid = tempWiki.getTiddler(title)
               tiddlers[title] = tempTid
-              info[title] = 'Modified: '+tempTid.fields.modified + '\nmeta-data: ' + tempTid.fields['meta-data'] + '\nversion: ' + tempTid.fields.version
+              info[title] = {}
+              if (bodyData.fieldList) {
+                bodyData.fieldList.split(' ').forEach(function(field) {
+                  info[title][field] = tempTid.fields[field];
+                })
+              } else {
+                info[title]['modified'] = tempTid.fields.modified;
+              }
             })
             // Send the tiddlers
             data = {list: list, tiddlers: tiddlers, info: info}
