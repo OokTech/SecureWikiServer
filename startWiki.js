@@ -421,10 +421,10 @@ var addRoutes = function () {
               info[title] = {}
               if (bodyData.fieldList) {
                 bodyData.fieldList.split(' ').forEach(function(field) {
-                  info[title][field] = tempTid.fields.field;
+                  info[title][field] = tempTid.fields[field]
                 })
               } else {
-                info[title]['modified'] = tempTid.fields.modified;
+                info[title]['modified'] = tempTid.fields.modified
               }
             })
             // Send the tiddlers
