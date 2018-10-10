@@ -76,3 +76,7 @@ rootWikiName="IndexWiki"
   # These are placeholders, I haven't decided if they will be used or not
   fetchEndpoint = "/api/fetch"
   pushEndpoint = "/api/push"
+[admin]
+  # List access levels here to give them the privlidges needed to push plugins
+  # to the plugin library
+  pushPlugins=["Admin"]

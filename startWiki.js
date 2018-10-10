@@ -260,6 +260,23 @@ var addRoutes = function () {
       return false
     }
   }
+  // Check if the access token gives the privlidegs needed to push plugins to
+  // the library
+  function canPushPlugin (bodyData, response) {
+    settings = require('./LoadConfig.js')
+    if (settings.admin) {
+      if (settings.admin.pushPlugins) {
+        var decoded = jwt.verify(bodyData.token, key)
+        if (decoded) {
+          if (settings.admin.pushPlugins.indexOf(decoded.level) !== -1) {
+            return true
+          }
+        }
+      }
+    }
+    return false
+  }
+  // Check bodyData and response.decoded to see if fetching is allowed
   function canFetchFromwiki (bodyData, response) {
     // Check if the token response.decoded gives view access to
     // bodyData.fromWiki
@@ -372,6 +389,59 @@ var addRoutes = function () {
         response.end()
       }
     })
+    // Add a plugin to the library
+    wiki.router.post('/api/plugins/upload', function(request, response) {
+      try {
+        var bodyData = JSON.parse(request.body.message)
+        var canPush = canPushPlugin(bodyData, response)
+        if (canPush) {
+          // Save plugin
+          const fs = require('fs')
+          const path = require('path')
+          var tempWiki = new $tw.Wiki()
+          var pluginName = data.plugin.title.replace('^$:/plugins')
+          // Make sure plugin folder exists
+          var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
+          var error = $tw.utils.createDirectory(pluginFolderPath);
+
+          Object.keys(data.plugin.text).forEach(function(tidTitle) {
+            var tiddler = new $tw.Tiddler(data.plugin.text[tidTitle], {title: tidTitle})
+            if (tiddler) {
+              tempWiki.addTiddler(tiddler)
+              var title = tiddler.fields.title;
+              var filepath = pluginFolderPath + path.sep + pluginName
+              // Save the tiddler as a self contained templated file
+              var content = tempWiki.renderTiddler("text/plain", "$:/core/templates/tid-tiddler", {variables: {currentTiddler: title}});
+              // If we aren't passed a path
+              fs.writeFile(filepath,content,{encoding: "utf8"},function (err) {
+                if(err) {
+                  console.log(err);
+                } else {
+                  console.log('saved file', filepath)
+                }
+              });
+            }
+          })
+          // Build the plugin.info file
+          var pluginInfo = {}
+          Object.keys(data.plugin).forEach(function(field) {
+            if (field !== 'text') {
+              pluginInfo[field] = data.plugin[field]
+            }
+          })
+          filepath = pluginFolderPath + path.sep + 'plugin.info'
+          fs.writeFile(filepath, JSON.stringify(pluginInfo, null, 2), function (err) {
+            if (err) {
+              console.log(err)
+            } else {
+              console.log('save plugin.info')
+            }
+          })
+        }
+      } catch (e) {
+
+      }
+    })
   }
   if (settings.API.enableFetch === 'yes') {
     wiki.router.post('/api/fetch/list', function(request, response) {
@@ -382,7 +452,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        hasAccess = canFetchFromwiki(bodyData, response)
+        var hasAccess = canFetchFromwiki(bodyData, response)
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -403,12 +473,14 @@ var addRoutes = function () {
                   var tempWiki = new wiki.tw.Wiki();
                   wiki.tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
                     var tiddler = wiki.tw.wiki.getTiddler(internalTitle);
-                    var newTiddler = JSON.parse(JSON.stringify(tiddler));
-                    newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                    newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                    newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                    // Add all the tiddlers that belong in wiki
-                    tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                    if (tiddler) {
+                      var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                      newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                      newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                      newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                      // Add all the tiddlers that belong in wiki
+                      tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                    }
                   })
                   // Use the filter
                   list = tempWiki.filterTiddlers(bodyData.filter);
@@ -434,13 +506,14 @@ var addRoutes = function () {
           }
         } else {
           // Don't have access
-          data = "";
           response.status(403);
           response.end(false);
         }
       } catch (e) {
-        data = JSON.stringify(data) || "";
-        response.end(data);
+        console.log(e)
+        //data = JSON.stringify(data) || "";
+        response.status(403);
+        response.end();
       }
       response.status(403);
       response.end()
@@ -453,7 +526,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        hasAccess = canFetchFromwiki(bodyData, response)
+        var hasAccess = canFetchFromwiki(bodyData, response)
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -474,12 +547,14 @@ var addRoutes = function () {
                   var tempWiki = new wiki.tw.Wiki();
                   wiki.tw.Bob.Wikis[bodyData.fromWiki].tiddlers.forEach(function(internalTitle) {
                     var tiddler = wiki.tw.wiki.getTiddler(internalTitle);
-                    var newTiddler = JSON.parse(JSON.stringify(tiddler));
-                    newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
-                    newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
-                    newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
-                    // Add all the tiddlers that belong in wiki
-                    tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                    if (tiddler) {
+                      var newTiddler = JSON.parse(JSON.stringify(tiddler));
+                      newTiddler.fields.modified = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.modified));
+                      newTiddler.fields.created = wiki.tw.utils.stringifyDate(new Date(newTiddler.fields.created));
+                      newTiddler.fields.title = newTiddler.fields.title.replace('{' + bodyData.fromWiki + '}', '');
+                      // Add all the tiddlers that belong in wiki
+                      tempWiki.addTiddler(new wiki.tw.Tiddler(newTiddler.fields));
+                    }
                   })
                   // Use the filter
                   list = tempWiki.filterTiddlers(bodyData.filter);
