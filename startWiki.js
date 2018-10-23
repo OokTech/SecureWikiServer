@@ -58,56 +58,22 @@ var unauthorised = "<html><p>You don't have the authorisation to view this wiki.
   based on the token they sent.
 */
 function checkPermission (response, fullName, permission) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
+  //settings = require('./LoadConfig.js')
+  var wikiPermissions = settings.loadConfig(defaultPath, localPath)
+  wikiPermissions.wikis = wikiPermissions.wikis || {}
+  wikiPermissions.wikis[fullName] = wikiPermissions.wikis[fullName] || {}
+  wikiPermissions.wikis[fullName].access = wikiPermissions.wikis[fullName].access || {}
   // If the wiki is set as public than anyone can view it
-  if (settings.wikis[fullName].public && permission === 'view') {
+  if (wikiPermissions.wikis[fullName].public && permission === 'view') {
     return true
   } else if (response.decoded) {
     // If the logged in person is the owner than they can view and edit it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
+    if (typeof response.decoded.name === 'string' && response.decoded.name === wikiPermissions.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
       return true
-    } else if (settings.wikis[fullName].access[response.decoded.level]) {
+    } else if (wikiPermissions.wikis[fullName].access[response.decoded.level]) {
       // If the logged in level of the person includes the permission return
       // true
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
-        return true
-      } else {
-        // No view permissions given to the logged in level
-        return false
-      }
-    } else {
-      // No access for the logged in level
-      return false
-    }
-  } else {
-    // No valid token was supplied
-    return false
-  }
-}
-
-/*
-  This checks to see if the person has viewing permissions.
-  Other permisions (edit, etc.) are checked when the person tries to use them.
-*/
-function checkAuthorisation (response, fullName) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-  // If the wiki is set as public than anyone can view it
-  if (settings.wikis[fullName].public) {
-    return true
-  } else if (response.decoded) {
-    // If the logged in person is the owner than they can view it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner) {
-      return true
-    } else if (settings.wikis[fullName].access[response.decoded.level]) {
-      // If the logged in level of the person can view the wiki than they
-      // can view it.
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf("view") !== -1) {
+      if (wikiPermissions.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
         return true
       } else {
         // No view permissions given to the logged in level
