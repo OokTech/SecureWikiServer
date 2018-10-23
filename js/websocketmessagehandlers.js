@@ -12,6 +12,11 @@ var fs = require('fs')
 var path = require('path')
 var jwt = require('jsonwebtoken')
 
+var settings = require('../LoadConfig.js')
+var TOML = require('@iarna/toml')
+
+//console.log(settings.Local)
+
 var connections = require('./websocketserver.js').connections
 
 var messageHandlers = messageHandlers || {}
@@ -33,6 +38,17 @@ function authenticateMessage(data) {
   } else {
     return false
   }
+}
+
+/*
+  This lets the client detemine if their credentials are still valid
+*/
+messageHandlers.credentialCheck = function (data) {
+  var authenticated = authenticateMessage(data)
+  if (authenticated) {
+    data['authenticated'] = true
+  }
+  connections[data.source_connection].socket.send(JSON.stringify(data))
 }
 
 /*

@@ -1,0 +1,82 @@
+# This is the default settings file. You should never edit this.
+
+# Server setup
+# This is the path that the serverKeyPath, certPath and tokenPrivateKeyPath are
+# relative to if they are not absolute paths.
+# The value homedir is a shorthand for the current users home directory
+filePathBase="homedir"
+# The path to the key file that goes with the certificate file
+serverKeyPath="./private.key"
+# The path to the https certificate for the server to use
+certPath="./certificate.crt"
+# The path to the private key to use for signing tokens
+tokenPrivateKeyPath="./.ssh/id_rsa"
+# The port to serve on
+httpsPort="8443"
+# Time to live for access tokens
+tokenTTL="24h"
+# The number of salt rounds to use when hashing passwords.
+#Don't use less than 10.
+saltRounds="10"
+# If this is true than the wikis are served on / on the server, otherwise they
+# are sevrved on /wikis
+serveWikiOnRoot = true
+# Wiki location settings
+# Relative wiki paths are relative to this
+# if this is set to 'homedir' than it uses the current user home folder as the
+# base of relative paths. Otherwise it needs to be an absolute path.
+wikiPathBase="homedir"
+# The folder that holds the wikis
+wikisPath="./Wikis"
+# The folder that holds the plugins
+pluginsPath="./Plugins"
+# The folder that holds the themes
+themesPath="./Themes"
+# This is the name of the wiki to use as the root wiki.
+rootWikiName="IndexWiki"
+# Settings for wiki access
+[wikis]
+  [wikis.RootWiki]
+    # If this has a name that the person named is the owner and gets owner
+    # privileges
+    owner=false
+    # If this is true than the wiki is publicly viewable as a static wiki
+    public=true
+    [wikis.RootWiki.access]
+      Guest=["view"]
+      Normal=["view", "edit"]
+      Admin=["view", "edit", "admin", "upload"]
+[actions]
+  # These are the actions needed to be able to view a wiki and get updates
+  view=["browserTiddlerList", "test", "ping", "pong", "ack"]
+  # These are the actions needed to edit a wiki
+  edit=["saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "ack"]
+  # These are general admin actions
+  admin=["addWiki", "saveSettings", "shutdownServer", "updateRoutes", "buildHTMLWiki", "newWikiFromTiddlers", "createNewWiki", "restartServer", "unloadWiki", "ack"]
+  # Scripts is special because it lets you run shell scripts. Be careful with
+  # this one!
+  scripts=["runScript"]
+  # Owner is a special class that applies to the person who made the wiki.
+  # Even if they don't belong to any groups they have special permissions for
+  # that wiki.
+  owner=["browserTiddlerList", "test", "ping", "pong", "saveTiddler", "cancelEditingTiddler", "clearStatus", "deleteTiddler", "editingTiddler", "unloadWiki", "ack"]
+  # Uploads are done using http(s) so there don't need to be any actions listed here.
+  upload=[]
+[API]
+  # Note: For both fetch and push the settings for individual wikis also need
+  # to be set. A person needs read access to a wiki to fetch from it (or the
+  # wiki can be public) and a person needs write access to a wiki to push to
+  # it. Being public isn't enough to let someone push to a wiki.
+  # Set this to yes to enable fetching from wikis
+  enableFetch = "no"
+  # Set this to yes to enable pushing to wikis
+  enablePush = "no"
+  # Set this to yes to enable the plugin library functionality
+  pluginLibrary = "no"
+  # These are placeholders, I haven't decided if they will be used or not
+  fetchEndpoint = "/api/fetch"
+  pushEndpoint = "/api/push"
+[admin]
+  # List access levels here to give them the privlidges needed to push plugins
+  # to the plugin library
+  pushPlugins=["Admin"]

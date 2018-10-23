@@ -36,36 +36,45 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(cookieParser())
 
+/*
+  This checks to see if there is a valid token with the request
+  or that the wiki in question is set to public
+*/
 function checkAuthentication (req, res, next) {
-  try {
-    var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
-    var decoded = jwt.verify(req.cookies.token, key)
-    if (decoded) {
-      // Add the decoded token to res object.
-      res.decoded = decoded
-      return next()
-    } else {
+  var regexp = new RegExp(`^${req.baseUrl}\/?`)
+  var wikiName = req.originalUrl.replace(regexp, '')
+  if (wikiName === '') {
+    wikiName = 'RootWiki'
+  }
+  // check if the wiki is public first
+  settings.wikis = settings.wikis || {}
+  settings.wikis[wikiName] = settings.wikis[wikiName] || {}
+  if (settings.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
+    return next()
+  } else {
+    // If the wiki isn't public than check if there is a valid token
+    try {
+      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var decoded = jwt.verify(req.cookies.token, key)
+      if (decoded) {
+        // Add the decoded token to res object.
+        res.decoded = decoded
+        return next()
+      } else {
+        res.redirect('/')
+      }
+    } catch (e) {
       res.redirect('/')
     }
-  } catch (e) {
-    res.redirect('/')
   }
 }
-
-app.use('/wiki', checkAuthentication, wiki.router)
-
-app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html')
-})
-
-app.get('/js', function (req, res) {
-  res.sendFile(__dirname + '/js/browser.js')
-})
 
 app.post('/authenticate', function (req, res) {
   // Get the authentication heanders and stuff
   // Check to make sure the header send a name and password
   if (req.body.name && req.body.pwd) {
+    // Set headers
+    res.setHeader('Access-Control-Allow-Origin', '*')
     try {
       // Get the stored hash
       var info = JSON.parse(fs.readFileSync(path.join(path.dirname(require.main.filename), 'people', req.body.name, 'info.hash'), {encoding: 'utf8'}))
@@ -77,7 +86,8 @@ app.post('/authenticate', function (req, res) {
           // Create the token for it
           // Sign the token using the rsa private key of the server
           var key = fs.readFileSync(path.join(baseDir, settings.tokenPrivateKeyPath))
-          var token = jwt.sign({level: info.level}, key, {expiresIn: settings.tokenTTL})
+          var token = jwt.sign({level: info.level, name: req.body.name}, key, {expiresIn: settings.tokenTTL})
+          res.status(200)
           // Send the token back
           res.send(token)
         } else {
@@ -95,6 +105,27 @@ app.post('/authenticate', function (req, res) {
   }
 })
 
+/*
+  Setup the wiki routes
+*/
+if (settings.serveWikiOnRoot === true ) {
+  app.use('/', checkAuthentication, wiki.router)
+} else {
+  app.use('/wiki', checkAuthentication, wiki.router)
+
+  app.get('/js', function (req, res) {
+    res.sendFile(__dirname + '/js/browser.js')
+  })
+
+  app.get('/settings', function (req, res) {
+    res.send({'wssPort': settings.httpsPort})
+  })
+
+  app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html')
+  })
+}
+
 keypath = path.join(baseDir, settings.serverKeyPath)
 certpath = path.join(baseDir, settings.certPath)
 var options = {
@@ -102,14 +133,16 @@ var options = {
   cert: fs.readFileSync(certpath)
 }
 
-https.createServer(options, app).listen(settings.httpsPort)
+var server = https.createServer(options, app).listen(settings.httpsPort)
+console.log(`HTTPS server on ${settings.httpsPort}`)
 
-// Create the websocket server on port 40510
+// Create the websocket server
 var wsserver = require('./js/websocketserver.js')
-var httpserver = https.createServer(options).listen(settings.wssPort)
-wsserver.init(httpserver, settings.wssPort)
+// Set the websocket server to use the https server
+wsserver.init(server)
 
 var messageHandlers = require('./js/websocketmessagehandlers.js')
 
 messageHandlers.addHandlers(wiki.tw.nodeMessageHandlers)
 wiki.tw.connections = wsserver.connections
+wiki.tw.Bob.handleMessage = wsserver.handleMessage
