@@ -19,8 +19,12 @@ var fs = require('fs')
 var jwt = require('jsonwebtoken')
 
 var settings = require('../LoadConfig.js')
+var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
+var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
+var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
+var wikiPermissions = settings.loadConfig(defaultPath, localPath).config
 
-var wiki = require('../startWiki.js')
+var wiki = require('../wikiStart.js')
 
 // Initialise variables
 var websocketserver = {}
@@ -70,20 +74,20 @@ function handleConnection (client) {
 function authenticateMessage(data) {
   if (data.token) {
     try {
-      settings = settings || {}
-      settings.wikis = settings.wikis || {}
-      settings.wikis[data.wiki] = settings.wikis[data.wiki] || {}
+      wikiPermissions = wikiPermissions || {}
+      wikiPermissions.wikis = wikiPermissions.wikis || {}
+      wikiPermissions.wikis[data.wiki] = wikiPermissions.wikis[data.wiki] || {}
       var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
       var decoded = jwt.verify(data.token, key)
       // Special handling for the chat thing
       if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
         return decoded
       } else if (decoded.level) {
-        if (settings.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner)) {
-          var levels = settings.wikis[data.wiki].access[decoded.level] || []
+        if (wikiPermissions.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === wikiPermissions.wikis[data.wiki].owner)) {
+          var levels = wikiPermissions.wikis[data.wiki].access[decoded.level] || []
           // If the logged in person is the wiki owner than add the 'owner'
           // level to the list of permissions
-          if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === settings.wikis[data.wiki].owner) {
+          if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === wikiPermissions.wikis[data.wiki].owner) {
             levels.push('owner')
           }
           var allowed = false

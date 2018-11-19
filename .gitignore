@@ -13,3 +13,4 @@ Local.toml
 test.sh
 Plugins/
 output.txt
+localWikiPermissions.toml

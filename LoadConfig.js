@@ -147,11 +147,11 @@ var saveConfigSetting = function (setting, local) {
     rawLocalConfig = fs.readFileSync(localConfigPath, {encoding: 'utf8'})
   } catch (e) {
     // If failure return an empty json object
-    //rawLocalConfig = {}
+    rawLocalConfig = ''
     console.log('failed to load local config')
   }
 
-  if (rawLocalConfig) {
+  if (rawLocalConfig || rawLocalConfig === '') {
     try {
       // Try parsing the local config json file
       if (typeof rawLocalConfig === 'string') {
@@ -172,7 +172,7 @@ var saveConfigSetting = function (setting, local) {
 }
 
 // Returns the parsed configuration.
-var result = loadConfiguration(defaultConfig, defaultLocal, config, localConfig)
+var result = loadConfiguration(defaultConfig, defaultLocal)
 
 module.exports = result.config
 module.exports.Local = result.local

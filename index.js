@@ -28,7 +28,7 @@ var cookieParser = require('cookie-parser')
 var settings = require('./LoadConfig.js')
 var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
 
-var wiki = require('./startWiki.js')
+var wiki = require('./wikiStart.js')
 
 var app = express()
 
@@ -41,15 +41,19 @@ app.use(cookieParser())
   or that the wiki in question is set to public
 */
 function checkAuthentication (req, res, next) {
+  var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
+  var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
+  var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
+  var wikiPermissions = settings.loadConfig(defaultPath, localPath).config
   var regexp = new RegExp(`^${req.baseUrl}\/?`)
   var wikiName = req.originalUrl.replace(regexp, '')
   if (wikiName === '') {
     wikiName = 'RootWiki'
   }
   // check if the wiki is public first
-  settings.wikis = settings.wikis || {}
-  settings.wikis[wikiName] = settings.wikis[wikiName] || {}
-  if (settings.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
+  wikiPermissions.wikis = wikiPermissions.wikis || {}
+  wikiPermissions.wikis[wikiName] = wikiPermissions.wikis[wikiName] || {}
+  if (wikiPermissions.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
     return next()
   } else {
     // If the wiki isn't public than check if there is a valid token
@@ -97,7 +101,7 @@ app.post('/authenticate', function (req, res) {
         res.status(403).send(false)
       }
     } catch (e) {
-      console.log(e)
+      console.log(`Could not authenticate ${req.body.name}`)
       res.status(400).send(false)
     }
   } else {

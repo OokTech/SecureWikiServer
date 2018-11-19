@@ -11,6 +11,10 @@ serverKeyPath="./private.key"
 certPath="./certificate.crt"
 # The path to the private key to use for signing tokens
 tokenPrivateKeyPath="./.ssh/id_rsa"
+# The path to the default wiki permissions
+wikiPermissionsPath="./Config/wikiPermissions.toml"
+# The path to the local wiki permissions
+localWikiPermissionsPath="./Config/localWikiPermissions.toml"
 # The port to serve on
 httpsPort="8443"
 # Time to live for access tokens
@@ -35,17 +39,6 @@ themesPath="./Themes"
 # This is the name of the wiki to use as the root wiki.
 rootWikiName="IndexWiki"
 # Settings for wiki access
-[wikis]
-  [wikis.RootWiki]
-    # If this has a name that the person named is the owner and gets owner
-    # privileges
-    owner=false
-    # If this is true than the wiki is publicly viewable as a static wiki
-    public=true
-    [wikis.RootWiki.access]
-      Guest=["view"]
-      Normal=["view", "edit"]
-      Admin=["view", "edit", "admin", "upload"]
 [actions]
   # These are the actions needed to be able to view a wiki and get updates
   view=["browserTiddlerList", "test", "ping", "pong", "ack"]

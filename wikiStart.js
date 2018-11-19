@@ -60,7 +60,10 @@ var unauthorised = "<html><p>You don't have the authorisation to view this wiki.
 */
 function checkPermission (response, fullName, permission) {
   //settings = require('./LoadConfig.js')
-  var wikiPermissions = settings.loadConfig(defaultPath, localPath)
+  var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
+  var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
+  var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
+  var wikiPermissions = settings.loadConfig(defaultPath, localPath).config
   wikiPermissions.wikis = wikiPermissions.wikis || {}
   wikiPermissions.wikis[fullName] = wikiPermissions.wikis[fullName] || {}
   wikiPermissions.wikis[fullName].access = wikiPermissions.wikis[fullName].access || {}
@@ -90,36 +93,6 @@ function checkPermission (response, fullName, permission) {
   }
 }
 
-/*
-  This function returns true if the logged in person has authorisation to
-  upload images for this wiki.
-  Wiki owners do not automatically get upload privlidges
-*/
-function checkUploadAuthorisation (response, fullName) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-  if (response.decoded) {
-    if (settings.wikis[fullName].access[response.decoded.level]) {
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf("upload") !== -1) {
-        // If the person is authenticated and has upload permissions on this
-        // wiki than allow uploads.
-        return true
-      } else {
-        // No upload permissions given to the logged in level
-        return false
-      }
-    } else {
-      // No access for this wiki at the authenticated level
-      return false
-    }
-  } else {
-    // Unauthenticated people can't upload things.
-    return false
-  }
-}
-
 var addRoutes = function () {
   /*
     This is for getting the root wiki
@@ -145,7 +118,6 @@ var addRoutes = function () {
     This is for uploading media files
   */
   wiki.router.post('/upload', function (request, response) {
-    //var authorised = checkUploadAuthorisation(response, request.get('x-wiki-name'))
     var authorised = checkPermission(response, request.get('x-wiki-name'), 'upload')
     if (authorised) {
       var body = ''
@@ -639,54 +611,6 @@ var addRoutes = function () {
   })
 }
 
-<<<<<<< HEAD
-  if (wiki.tw.settings.filePathRoot) {
-    // If we have a path for files add the file server route
-    wiki.router.get('/file/:name', function (request, response) {
-      var pathname = path.join(wiki.tw.settings.filePathRoot, request.params.name)
-      // Make sure that someone doesn't try to do something like ../../ to get to things they shouldn't get.
-      if (pathname.startsWith(wiki.tw.settings.filePathRoot)) {
-        fs.exists(pathname, function(exists) {
-          if (!exists || fs.statSync(pathname).isDirectory()) {
-            response.statusCode = 404;
-            response.end();
-          }
-          fs.readFile(pathname, function(err, data) {
-            if (err) {
-              console.log(err)
-              response.statusCode = 500;
-              response.end()
-            } else {
-              var ext = path.parse(pathname).ext;
-              var mimeMap = wiki.tw.settings.mimeMap || {
-                '.ico': 'image/x-icon',
-                '.html': 'text/html',
-                '.png': 'image/png',
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.wav': 'audio/wav',
-                '.mp3': 'audio/mpeg',
-                '.svg': 'image/svg+xml',
-                '.pdf': 'application/pdf',
-                '.doc': 'application/msword',
-                '.gif': 'image/gif'
-              }
-              if (mimeMap[ext] || (wiki.tw.settings.allowUnsafeMimeTypes && wiki.tw.settings.accptance === "I Will Not Get Tech Support For This")) {
-                response.writeHead(200, {"Content-type": mimeMap[ext] || "text/plain"})
-                response.end(data)
-              } else {
-                response.writeHead(403)
-                response.end()
-              }
-            }
-          })
-        })
-      } else {
-        response.writeHead(403)
-        response.end()
-      }
-    })
-=======
 function loadMediaFile(request, response) {
   var wikiName = request.params.wikiName;
   wiki.tw.settings.mimeMap = wiki.tw.settings.mimeMap || {
@@ -744,7 +668,6 @@ function loadMediaFile(request, response) {
     } else {
       response.writeHead(404)
     }
->>>>>>> 2dcf74f93b6c002d32fbb04375940a1442faed03
   }
 }
 
@@ -774,30 +697,25 @@ addRoutes()
 */
 wiki.tw.ExternalServer = wiki.tw.ExternalServer || {}
 wiki.tw.ExternalServer.initialiseWikiSettings = function(name, data) {
-  localSettings = settings.Local
-  localSettings.wikis = localSettings.wikis || {}
-  localSettings.wikis[name] = {}
-  localSettings.wikis[name].public = data.public || false
-  localSettings.wikis[name].owner = data.decoded.name
-  settings.saveSetting(localSettings)
+  var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
+  var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
+  var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
+  var localWikiPermissions = settings.loadConfig(defaultPath, localPath).local
+  localWikiPermissions.wikis = localWikiPermissions.wikis || {}
+  localWikiPermissions.wikis[name] = {}
+  localWikiPermissions.wikis[name].public = data.public || false
+  localWikiPermissions.wikis[name].owner = data.decoded.name
+  settings.saveSetting(localWikiPermissions, localPath)
 }
 
 // Here these two functions are placeholders, they don't do anything here.
 // They are needed to make this work with the non-express server components.
 wiki.tw.httpServer = {}
 wiki.tw.httpServer.addOtherRoutes = function () {
-<<<<<<< HEAD
-
-=======
   // Does nothing!
->>>>>>> 2dcf74f93b6c002d32fbb04375940a1442faed03
 }
 wiki.tw.httpServer.clearRoutes = function () {
-<<<<<<< HEAD
-
-=======
   // Also does nothing!
->>>>>>> 2dcf74f93b6c002d32fbb04375940a1442faed03
 }
 
 module.exports = wiki
