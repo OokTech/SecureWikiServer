@@ -29,7 +29,7 @@ var messageHandlers = messageHandlers || {}
 function authenticateMessage(data) {
   if (data.token) {
     try {
-      var key = fs.readFileSync(path.join(require('os').homedir(), '.ssh/id_rsa'))
+      var key = require('./js/loadSecrets.js')
       var decoded = jwt.verify(data.token, key)
       return decoded
     } catch (e) {

@@ -19,11 +19,6 @@ var fs = require('fs')
 var jwt = require('jsonwebtoken')
 
 var settings = require('../LoadConfig.js')
-var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
-var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
-var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
-var wikiPermissions = settings.loadConfig(defaultPath, localPath).config
-
 var wiki = require('../wikiStart.js')
 
 // Initialise variables
@@ -74,10 +69,11 @@ function handleConnection (client) {
 function authenticateMessage(data) {
   if (data.token) {
     try {
+      var wikiPermissions = require('./checkPermissions.js').wikiPermissions
       wikiPermissions = wikiPermissions || {}
       wikiPermissions.wikis = wikiPermissions.wikis || {}
       wikiPermissions.wikis[data.wiki] = wikiPermissions.wikis[data.wiki] || {}
-      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var key = require('./loadSecrets.js')
       var decoded = jwt.verify(data.token, key)
       // Special handling for the chat thing
       if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {

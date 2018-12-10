@@ -41,10 +41,7 @@ app.use(cookieParser())
   or that the wiki in question is set to public
 */
 function checkAuthentication (req, res, next) {
-  var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
-  var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
-  var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
-  var wikiPermissions = settings.loadConfig(defaultPath, localPath).config
+  var wikiPermissions = require('./js/checkPermissions.js').wikiPermissions
   var regexp = new RegExp(`^${req.baseUrl}\/?`)
   var wikiName = req.originalUrl.replace(regexp, '')
   if (wikiName === '') {
@@ -58,7 +55,7 @@ function checkAuthentication (req, res, next) {
   } else {
     // If the wiki isn't public than check if there is a valid token
     try {
-      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var key = require('./js/loadSecrets.js')
       var decoded = jwt.verify(req.cookies.token, key)
       if (decoded) {
         // Add the decoded token to res object.
@@ -89,7 +86,7 @@ app.post('/authenticate', function (req, res) {
           // Check the headers against the username and password
           // Create the token for it
           // Sign the token using the rsa private key of the server
-          var key = fs.readFileSync(path.join(baseDir, settings.tokenPrivateKeyPath))
+          var key = require('./js/loadSecrets.js')
           var token = jwt.sign({level: info.level, name: req.body.name}, key, {expiresIn: settings.tokenTTL})
           res.status(200)
           // Send the token back
