@@ -21,20 +21,23 @@ fs.watch(localPath, function(eventType, filename) {
   based on the token they sent.
 */
 function checkPermission (fullName, response, permission) {
-  wikiPermissions.wikis = wikiPermissions.wikis || {}
-  wikiPermissions.wikis[fullName] = wikiPermissions.wikis[fullName] || {}
-  wikiPermissions.wikis[fullName].access = wikiPermissions.wikis[fullName].access || {}
+  var nameParts = fullName.split('/')
+  var permissionsObject = wikiPermissions.wikis || {}
+  nameParts.forEach(function(part) {
+    permissionsObject = permissionsObject[part] || {};
+  })
+  permissionsObject.access = permissionsObject.access || {};
   // If the wiki is set as public than anyone can view it
-  if (wikiPermissions.wikis[fullName].public && permission === 'view') {
+  if (permissionsObject.public && permission === 'view') {
     return true
   } else if (response.decoded) {
     // If the logged in person is the owner than they can view and edit it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === wikiPermissions.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
+    if (typeof response.decoded.name === 'string' && response.decoded.name === permissionsObject.owner && ['view', 'edit'].indexOf(permission) !== -1) {
       return true
-    } else if (wikiPermissions.wikis[fullName].access[response.decoded.level]) {
+    } else if (permissionsObject.access[response.decoded.level]) {
       // If the logged in level of the person includes the permission return
       // true
-      if (wikiPermissions.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
+      if (permissionsObject.access[response.decoded.level].indexOf(permission) !== -1) {
         return true
       } else {
         // No view permissions given to the logged in level

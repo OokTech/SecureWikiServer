@@ -119,7 +119,7 @@ var addRoutes = function () {
   })
 
   wiki.router.get('/files/:filePath', function (request, response) {
-    loadMediaFile(request, response)
+    loadMediaFile(request, response, "RootWiki")
   })
 
   wiki.router.get('/favicon', function(request,response) {
@@ -499,7 +499,7 @@ var addRoutes = function () {
   })
 
   wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
-    loadMediaFile(request, response)
+    loadMediaFile(request, response, request.params.wikiName)
   })
 
   wiki.router.get('/:wikiName/favicon.ico', function (request, response) {
@@ -508,14 +508,68 @@ var addRoutes = function () {
     var authorised = checkPermission(request.params.wikiName, response, 'view')
     if (authorised) {
       response.writeHead(200, {"Content-Type": "image/x-icon"})
-      var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","")
+      var buffer = $tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
       response.end(buffer,"base64")
+    } else {
+      response.writeHead(403)
+      response.end()
+    }
+  })
+
+  wiki.router.get('/*', function(request, response) {
+    var wikiName = request.url.slice(1)
+    var authorised = checkPermission(wikiName, response, 'view')
+    if (authorised) {
+      // Get wiki path
+      var nameParts = wikiName.split('/')
+      var pathsObject = wiki.tw.settings.wikis || {}
+      nameParts.forEach(function(part) {
+        pathsObject = pathsObject[part] || "";
+      })
+      // Make sure we have loaded the wiki tiddlers.
+      // This does nothing if the wiki is already loaded.
+      var exists = wiki.tw.ServerSide.loadWiki(wikiName, pathsObject);
+      if (exists) {
+        // If servePlugin is not false than we strip out the filesystem
+        // and tiddlyweb plugins if they are there and add in the
+        // multiuser plugin.
+        var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
+        // Get the full text of the html wiki to send as the response.
+        var text = wiki.tw.ServerSide.prepareWiki(wikiName, servePlugin);
+      } else {
+        var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+      }
+      response.writeHead(200, {"Content-Type": "text/html"});
+      response.end(text,"utf8");
+    } else {
+      response.end(unauthorised, "utf8")
+    }
+  })
+
+  wiki.router.get('/*/files/:filePath', function (request, response) {
+    var wikiName = request.url.slice(1)
+    wikiName = wikiName.replace(/\/files\/.+&/, '')
+    loadMediaFile(request, response, wikiName)
+  })
+
+  wiki.router.get('/*/favicon.ico', function(request, response) {
+    var wikiName = request.url.slice(1, -12)
+    var authorised = checkPermission(wikiName, response, 'view')
+    if (authorised) {
+      response.writeHead(200, {"Content-Type": "image/x-icon"})
+      var buffer = $tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
+      response.end(buffer,"base64")
+    } else {
+      response.writeHead(403)
+      response.end()
     }
   })
 }
 
-function loadMediaFile(request, response) {
-  var wikiName = request.params.wikiName;
+function loadMediaFile(request, response, wikiName) {
+  console.log(wikiName)
+  console.log(request.params.filePath)
+  //var wikiName = request.params.wikiName;
   wiki.tw.settings.mimeMap = wiki.tw.settings.mimeMap || {
     '.aac': 'audio/aac',
     '.avi': 'video/x-msvideo',
@@ -544,7 +598,7 @@ function loadMediaFile(request, response) {
     //Make sure that the file type is listed in the mimeMap
     if (wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]) {
       var fileFolderPath = path.join(wiki.tw.Bob.Wikis[wikiName].wikiPath, 'files')
-      var file = path.join(fileFolderPath, request.params.filePath)
+      var file = path.resolve(fileFolderPath, request.params.filePath)
       // Make sure that there aren't any sneaky things like '../../../.ssh' in
       // the resolved file path.
       if (file.startsWith(fileFolderPath)) {
