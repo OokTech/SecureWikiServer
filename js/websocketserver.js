@@ -21,6 +21,8 @@ var jwt = require('jsonwebtoken')
 var settings = require('../LoadConfig.js')
 var wiki = require('../wikiStart.js')
 
+var checkPermissions = require('./checkPermissions.js')
+
 // Initialise variables
 var websocketserver = {}
 var connections = []
@@ -61,57 +63,6 @@ function handleConnection (client) {
   wiki.tw.Bob.SendToBrowser(connections[Object.keys(connections).length-1], message);
 }
 
-// Authentication function, if the token is verified it returns the decoded
-// token payload, otherwise returns false.
-// Not being authenticated doesn't mean that the request fails because we
-// can have public actions, or different levels of authentication for
-// different actions.
-function authenticateMessage(data) {
-  if (data.token) {
-    try {
-      var wikiPermissions = require('./checkPermissions.js').wikiPermissions
-      wikiPermissions = wikiPermissions || {}
-      wikiPermissions.wikis = wikiPermissions.wikis || {}
-      wikiPermissions.wikis[data.wiki] = wikiPermissions.wikis[data.wiki] || {}
-      var key = require('./loadSecrets.js')
-      var decoded = jwt.verify(data.token, key)
-      // Special handling for the chat thing
-      if (decoded && (data.type === 'announce' || data.type === 'credentialCheck' || (data.type === 'ping' && decoded.level !== 'Guest'))) {
-        return decoded
-      } else if (decoded.level) {
-        if (wikiPermissions.wikis[data.wiki].access[decoded.level] || (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === wikiPermissions.wikis[data.wiki].owner)) {
-          var levels = wikiPermissions.wikis[data.wiki].access[decoded.level] || []
-          // If the logged in person is the wiki owner than add the 'owner'
-          // level to the list of permissions
-          if (typeof decoded.name === 'string' && decoded.name !== '' && decoded.name === wikiPermissions.wikis[data.wiki].owner) {
-            levels.push('owner')
-          }
-          var allowed = false
-          levels.forEach(function(level, index) {
-            if (settings.actions[level].indexOf(data.type) !== -1) {
-              allowed = decoded
-            }
-          })
-          return allowed
-        } else {
-          // The attempted operation isn't allowed by the persons
-          // authorisation level.
-          return false
-        }
-      } else {
-        // No authorisation level included in the token
-        return false
-      }
-    } catch (e) {
-      // Error getting private key or something similar
-      return false
-    }
-  } else {
-    // No token
-    return false
-  }
-}
-
   // This function sets up how the websocket server handles incomming
   // messages. It is generic and extensible so you can use this same server
   // to make many different things.
@@ -134,7 +85,12 @@ function handleMessage(event) {
     // Make sure we have a handler for the message type
     if (typeof messageHandlers[eventData.type] === 'function') {
       // Check authorisation
-      var authorised = authenticateMessage(eventData)
+      var key = require('./loadSecrets.js')
+      var decoded = false
+      if (eventData.token) {
+        decoded = jwt.verify(eventData.token, key)
+      }
+      var authorised = checkPermissions(eventData.wiki, {decoded: decoded}, false, eventData.type)
       if (authorised) {
         eventData.decoded = authorised
         messageHandlers[eventData.type](eventData)

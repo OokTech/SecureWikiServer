@@ -240,14 +240,14 @@ var addRoutes = function () {
           // Save plugin
           const fs = require('fs')
           const path = require('path')
-          var tempWiki = new $tw.Wiki()
+          var tempWiki = new wiki.tw.Wiki()
           var pluginName = data.plugin.title.replace('^$:/plugins')
           // Make sure plugin folder exists
-          var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
-          var error = $tw.utils.createDirectory(pluginFolderPath);
+          var pluginFolderPath = path.resolve(wiki.tw.settings.pluginsPath, pluginName)
+          var error = wiki.tw.utils.createDirectory(pluginFolderPath);
 
           Object.keys(data.plugin.text).forEach(function(tidTitle) {
-            var tiddler = new $tw.Tiddler(data.plugin.text[tidTitle], {title: tidTitle})
+            var tiddler = new wiki.tw.Tiddler(data.plugin.text[tidTitle], {title: tidTitle})
             if (tiddler) {
               tempWiki.addTiddler(tiddler)
               var title = tiddler.fields.title;
@@ -294,7 +294,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        var hasAccess = checkPermission(bodyData.fromWiki, response, 'view')
+        var hasAccess = checkPermission(bodyData.fromWiki, response, 'fetch')
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -368,7 +368,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        var hasAccess = checkPermission(bodyData.fromWiki, response, 'view')
+        var hasAccess = checkPermission(bodyData.fromWiki, response, 'fetch')
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -444,7 +444,7 @@ var addRoutes = function () {
         var bodyData = JSON.parse(request.body.message)
         // Make sure that the token sent here matches the https header
         // and that the token has push access to the toWiki
-        var allowed = checkPermission(bodyData.toWiki, response, 'edit')
+        var allowed = checkPermission(bodyData.toWiki, response, 'push')
         if (allowed) {
           if (wiki.tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
             wiki.tw.ServerSide.loadWiki(bodyData.toWiki, wiki.tw.settings.wikis[bodyData.toWiki]);
@@ -498,17 +498,55 @@ var addRoutes = function () {
     }
   })
 
-  wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
-    loadMediaFile(request, response, request.params.wikiName)
-  })
-
   wiki.router.get('/:wikiName/favicon.ico', function (request, response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
     var authorised = checkPermission(request.params.wikiName, response, 'view')
     if (authorised) {
       response.writeHead(200, {"Content-Type": "image/x-icon"})
-      var buffer = $tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
+      var buffer = wiki.tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
+      response.end(buffer,"base64")
+    } else {
+      response.writeHead(403)
+      response.end()
+    }
+  })
+
+  wiki.router.get('/files/:wikiName/:filePath', function (request, response) {
+    loadMediaFile(request, response, request.params.wikiName)
+  })
+
+  wiki.router.get('/files/*', function (request, response) {
+    function findName(url) {
+      var pieces = url.split('/')
+      var name = pieces[0]
+      var settingsObj = wiki.tw.settings.wikis[name]
+      for (var i = 1; i < pieces.length; i++) {
+        if (typeof settingsObj[pieces[i]] === 'object') {
+          name = name + '/' + pieces[i]
+          settingsObj = settingsObj[pieces[i]]
+        } else if (typeof settingsObj[pieces[i]] === 'string') {
+          name = name + '/' + pieces[i]
+          break
+        } else {
+          break
+        }
+      }
+      return name
+    }
+    var wikiName = findName(request.url.slice(7))
+    var filePath = request.url.slice(7+wikiName.length)
+    request.params.wikiName = wikiName
+    request.params.filePath = filePath
+    loadMediaFile(request, response, wikiName)
+  })
+
+  wiki.router.get('/*/favicon.ico', function(request, response) {
+    var wikiName = request.url.slice(1, -12)
+    var authorised = checkPermission(wikiName, response, 'view')
+    if (authorised) {
+      response.writeHead(200, {"Content-Type": "image/x-icon"})
+      var buffer = wiki.tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
       response.end(buffer,"base64")
     } else {
       response.writeHead(403)
@@ -545,31 +583,13 @@ var addRoutes = function () {
       response.end(unauthorised, "utf8")
     }
   })
-
-  wiki.router.get('/*/files/:filePath', function (request, response) {
-    var wikiName = request.url.slice(1)
-    wikiName = wikiName.replace(/\/files\/.+&/, '')
-    loadMediaFile(request, response, wikiName)
-  })
-
-  wiki.router.get('/*/favicon.ico', function(request, response) {
-    var wikiName = request.url.slice(1, -12)
-    var authorised = checkPermission(wikiName, response, 'view')
-    if (authorised) {
-      response.writeHead(200, {"Content-Type": "image/x-icon"})
-      var buffer = $tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
-      response.end(buffer,"base64")
-    } else {
-      response.writeHead(403)
-      response.end()
-    }
-  })
 }
 
+/*
+  This is used to load a media file from the server
+  It needs to be updated to support files for individual wikis
+*/
 function loadMediaFile(request, response, wikiName) {
-  console.log(wikiName)
-  console.log(request.params.filePath)
-  //var wikiName = request.params.wikiName;
   wiki.tw.settings.mimeMap = wiki.tw.settings.mimeMap || {
     '.aac': 'audio/aac',
     '.avi': 'video/x-msvideo',
@@ -597,8 +617,8 @@ function loadMediaFile(request, response, wikiName) {
   if (authorised) {
     //Make sure that the file type is listed in the mimeMap
     if (wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]) {
-      var fileFolderPath = path.join(wiki.tw.Bob.Wikis[wikiName].wikiPath, 'files')
-      var file = path.resolve(fileFolderPath, request.params.filePath)
+      var fileFolderPath = path.resolve(wiki.tw.Bob.Wikis[wikiName].wikiPath, 'files')
+      var file = path.join(fileFolderPath, request.params.filePath)
       // Make sure that there aren't any sneaky things like '../../../.ssh' in
       // the resolved file path.
       if (file.startsWith(fileFolderPath)) {

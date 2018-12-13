@@ -20,31 +20,45 @@ fs.watch(localPath, function(eventType, filename) {
   This is a generic function to check if a person has a permission on a wiki
   based on the token they sent.
 */
-function checkPermission (fullName, response, permission) {
+function checkPermission (fullName, response, permission, action) {
   var nameParts = fullName.split('/')
   var permissionsObject = wikiPermissions.wikis || {}
   nameParts.forEach(function(part) {
     permissionsObject = permissionsObject[part] || {};
   })
   permissionsObject.access = permissionsObject.access || {};
-  // If the wiki is set as public than anyone can view it
-  if (permissionsObject.public && permission === 'view') {
+  if (response.decoded && (action === 'announce' || action === 'credentialCheck' || (action === 'ping' && response.decoded.level !== 'Guest'))) {
     return true
-  } else if (response.decoded) {
-    // If the logged in person is the owner than they can view and edit it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === permissionsObject.owner && ['view', 'edit'].indexOf(permission) !== -1) {
-      return true
-    } else if (permissionsObject.access[response.decoded.level]) {
-      // If the logged in level of the person includes the permission return
-      // true
-      if (permissionsObject.access[response.decoded.level].indexOf(permission) !== -1) {
-        return true
-      } else {
-        // No view permissions given to the logged in level
-        return false
+  } else if (permissionsObject.public && permission === 'view') {
+    // If the wiki is set as public than anyone can view it
+    return true
+  } else if (response.decoded.level) {
+    if (permissionsObject.access[response.decoded.level] || (typeof response.decoded.name === 'string' && response.decoded.name !== '' && response.decoded.name === permissionsObject.owner)) {
+      var levels = permissionsObject.access[response.decoded.level] || []
+      // If the logged in person is the wiki owner than add the 'owner'
+      // level to the list of permissions
+      if (typeof response.decoded.name === 'string' && response.decoded.name !== '' && response.decoded.name === permissionsObject.owner) {
+        levels.push('owner')
+        levels.push('view')
+        levels.push('edit')
       }
+      var allowed = false
+      if (permission) {
+        // If the permission level requested is listed than it is allowed
+        allowed = (levels.indexOf(permission) !== -1)
+      } else if (action) {
+        // If the action listed is part of one of the allowed permission levels
+        // it is allowed.
+        levels.forEach(function(level, index) {
+          if (settings.actions[level].indexOf(action) !== -1) {
+            allowed = true
+          }
+        })
+      }
+      return allowed
     } else {
-      // No access for the logged in level
+      // The attempted operation isn't allowed by the persons
+      // authorisation level.
       return false
     }
   } else {
