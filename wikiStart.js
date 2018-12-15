@@ -2,6 +2,7 @@ var settings = require('./LoadConfig.js')
 var express = require('express')
 var wiki = {}
 wiki.router = express.Router()
+var fileRouter = express.Router()
 
 const path = require('path')
 const fs = require('fs')
@@ -53,105 +54,7 @@ wiki.tw.boot.boot()
 
 var unauthorised = "<html><p>You don't have the authorisation to view this wiki.</p> <p><a href='/'>Return to login</a></p></html>"
 
-/*
-  This is a generic function to check if a person has a permission on a wiki
-  based on the token they sent.
-*/
-function checkPermission (response, fullName, permission) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-  // If the wiki is set as public than anyone can view it
-  if (settings.wikis[fullName].public && permission === 'view') {
-    return true
-  } else if (response.decoded) {
-    // If the logged in person is the owner than they can view and edit it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner && ['view', 'edit'].indexOf(permission) !== -1) {
-      return true
-    } else if (settings.wikis[fullName].access[response.decoded.level]) {
-      // If the logged in level of the person includes the permission return
-      // true
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf(permission) !== -1) {
-        return true
-      } else {
-        // No view permissions given to the logged in level
-        return false
-      }
-    } else {
-      // No access for the logged in level
-      return false
-    }
-  } else {
-    // No valid token was supplied
-    return false
-  }
-}
-
-/*
-  This checks to see if the person has viewing permissions.
-  Other permisions (edit, etc.) are checked when the person tries to use them.
-*/
-function checkAuthorisation (response, fullName) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-  // If the wiki is set as public than anyone can view it
-  if (settings.wikis[fullName].public) {
-    return true
-  } else if (response.decoded) {
-    // If the logged in person is the owner than they can view it
-    if (typeof response.decoded.name === 'string' && response.decoded.name === settings.wikis[fullName].owner) {
-      return true
-    } else if (settings.wikis[fullName].access[response.decoded.level]) {
-      // If the logged in level of the person can view the wiki than they
-      // can view it.
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf("view") !== -1) {
-        return true
-      } else {
-        // No view permissions given to the logged in level
-        return false
-      }
-    } else {
-      // No access for the logged in level
-      return false
-    }
-  } else {
-    // No valid token was supplied
-    return false
-  }
-}
-
-/*
-  This function returns true if the logged in person has authorisation to
-  upload images for this wiki.
-  Wiki owners do not automatically get upload privlidges
-*/
-function checkUploadAuthorisation (response, fullName) {
-  settings = require('./LoadConfig.js')
-  settings.wikis = settings.wikis || {}
-  settings.wikis[fullName] = settings.wikis[fullName] || {}
-  settings.wikis[fullName].access = settings.wikis[fullName].access || {}
-  if (response.decoded) {
-    if (settings.wikis[fullName].access[response.decoded.level]) {
-      if (settings.wikis[fullName].access[response.decoded.level].indexOf("upload") !== -1) {
-        // If the person is authenticated and has upload permissions on this
-        // wiki than allow uploads.
-        return true
-      } else {
-        // No upload permissions given to the logged in level
-        return false
-      }
-    } else {
-      // No access for this wiki at the authenticated level
-      return false
-    }
-  } else {
-    // Unauthenticated people can't upload things.
-    return false
-  }
-}
+var checkPermission = require('./js/checkPermissions.js')
 
 var addRoutes = function () {
   /*
@@ -160,7 +63,7 @@ var addRoutes = function () {
   wiki.router.get('/', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkPermission(response, 'RootWiki', 'view')
+    var authorised = checkPermission('RootWiki', response, 'view')
     if (authorised) {
       // Load the wiki
       wiki.tw.ServerSide.loadWiki('RootWiki', wiki.tw.boot.wikiPath)
@@ -178,8 +81,7 @@ var addRoutes = function () {
     This is for uploading media files
   */
   wiki.router.post('/upload', function (request, response) {
-    //var authorised = checkUploadAuthorisation(response, request.get('x-wiki-name'))
-    var authorised = checkPermission(response, request.get('x-wiki-name'), 'upload')
+    var authorised = checkPermission(request.get('x-wiki-name'), response, 'upload')
     if (authorised) {
       var body = ''
       request.on('data', function (data) {
@@ -217,13 +119,13 @@ var addRoutes = function () {
   })
 
   wiki.router.get('/files/:filePath', function (request, response) {
-    loadMediaFile(request, response)
+    loadMediaFile(request, response, "RootWiki")
   })
 
   wiki.router.get('/favicon', function(request,response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkPermission(response, 'RootWiki', 'view')
+    var authorised = checkPermission('RootWiki', response, 'view')
     if (authorised) {
       response.writeHead(200, {"Content-Type": "image/x-icon"});
       var buffer = wiki.tw.wiki.getTiddlerText("$:/favicon.ico","");
@@ -232,40 +134,13 @@ var addRoutes = function () {
   })
 
   settings.API = settings.API || {}
-  // Check bodyData and response.decoded to see if pushing is allowed
-  function canPushToWiki(bodyData, response) {
-    // Check if the token response.decoded gives write access to bodyData.toWiki
-    settings = require('./LoadConfig.js')
-    settings.wikis = settings.wikis || {}
-    settings.wikis[bodyData.toWiki] = settings.wikis[bodyData.toWiki] || {}
-    settings.wikis[bodyData.toWiki].access = settings.wikis[bodyData.toWiki].access || {}
-    var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
-    var decoded = jwt.verify(bodyData.token, key)
-    if (decoded) {
-      if (settings.wikis[bodyData.toWiki].access[decoded.level]) {
-        if (settings.wikis[bodyData.toWiki].access[decoded.level].indexOf("edit") !== -1) {
-          // If the person is authenticated and has upload permissions on this
-          // wiki than allow uploads.
-          return true
-        } else {
-          // No upload permissions given to the logged in level
-          return false
-        }
-      } else {
-        // No access for this wiki at the authenticated level
-        return false
-      }
-    } else {
-      // Unauthenticated people can't upload things.
-      return false
-    }
-  }
   // Check if the access token gives the privlidegs needed to push plugins to
   // the library
   function canPushPlugin (bodyData, response) {
     settings = require('./LoadConfig.js')
     if (settings.admin) {
       if (settings.admin.pushPlugins) {
+        var key = require('./js/loadSecrets.js')
         var decoded = jwt.verify(bodyData.token, key)
         if (decoded) {
           if (settings.admin.pushPlugins.indexOf(decoded.level) !== -1) {
@@ -275,39 +150,6 @@ var addRoutes = function () {
       }
     }
     return false
-  }
-  // Check bodyData and response.decoded to see if fetching is allowed
-  function canFetchFromwiki (bodyData, response) {
-    // Check if the token response.decoded gives view access to
-    // bodyData.fromWiki
-    settings = require('./LoadConfig.js')
-    settings.wikis = settings.wikis || {}
-    settings.wikis[bodyData.fromWiki] = settings.wikis[bodyData.fromWiki] || {}
-    settings.wikis[bodyData.fromWiki].access = settings.wikis[bodyData.fromWiki].access || {}
-    // People can fetch from public wikis without authentication
-    if (settings.wikis[bodyData.fromWiki].public) {
-      return true
-    } else {
-      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
-      var decoded = jwt.verify(bodyData.token, key)
-      if (decoded) {
-        if (settings.wikis[bodyData.fromWiki].access[decoded.level]) {
-          if (settings.wikis[bodyData.fromWiki].access[decoded.level].indexOf("view") !== -1) {
-            // If the person is authenticated and has upload permissions on this
-            // wiki than allow uploads.
-            return true
-          } else {
-            // No upload permissions given to the logged in level
-            return false
-          }
-        } else {
-          // No access for this wiki at the authenticated level
-          return false
-        }
-      } else {
-        return false
-      }
-    }
   }
   if (settings.API.pluginLibrary === 'yes') {
     // List the available plugins
@@ -398,14 +240,14 @@ var addRoutes = function () {
           // Save plugin
           const fs = require('fs')
           const path = require('path')
-          var tempWiki = new $tw.Wiki()
+          var tempWiki = new wiki.tw.Wiki()
           var pluginName = data.plugin.title.replace('^$:/plugins')
           // Make sure plugin folder exists
-          var pluginFolderPath = path.resolve($tw.settings.pluginsPath, pluginName)
-          var error = $tw.utils.createDirectory(pluginFolderPath);
+          var pluginFolderPath = path.resolve(wiki.tw.settings.pluginsPath, pluginName)
+          var error = wiki.tw.utils.createDirectory(pluginFolderPath);
 
           Object.keys(data.plugin.text).forEach(function(tidTitle) {
-            var tiddler = new $tw.Tiddler(data.plugin.text[tidTitle], {title: tidTitle})
+            var tiddler = new wiki.tw.Tiddler(data.plugin.text[tidTitle], {title: tidTitle})
             if (tiddler) {
               tempWiki.addTiddler(tiddler)
               var title = tiddler.fields.title;
@@ -452,7 +294,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        var hasAccess = canFetchFromwiki(bodyData, response)
+        var hasAccess = checkPermission(bodyData.fromWiki, response, 'fetch')
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -526,7 +368,7 @@ var addRoutes = function () {
       response.writeHead(200, {"Content-Type": "application/json"});
       try {
         var bodyData = JSON.parse(request.body.message)
-        var hasAccess = canFetchFromwiki(bodyData, response)
+        var hasAccess = checkPermission(bodyData.fromWiki, response, 'fetch')
         if (hasAccess) {
           if (bodyData.filter && bodyData.fromWiki) {
             // Make sure that the wiki is listed
@@ -602,7 +444,7 @@ var addRoutes = function () {
         var bodyData = JSON.parse(request.body.message)
         // Make sure that the token sent here matches the https header
         // and that the token has push access to the toWiki
-        var allowed = canPushToWiki(bodyData, response)
+        var allowed = checkPermission(bodyData.toWiki, response, 'push')
         if (allowed) {
           if (wiki.tw.settings.wikis[bodyData.toWiki] || bodyData.toWiki === 'RootWiki') {
             wiki.tw.ServerSide.loadWiki(bodyData.toWiki, wiki.tw.settings.wikis[bodyData.toWiki]);
@@ -634,7 +476,7 @@ var addRoutes = function () {
 
   wiki.router.get('/:wikiName', function(request, response) {
     // Make sure that the logged in person is authorised to access the wiki
-    var authorised = checkPermission(response,request.params.wikiName, 'view')
+    var authorised = checkPermission(request.params.wikiName, response, 'view')
     if (authorised) {
       // Make sure we have loaded the wiki tiddlers.
       // This does nothing if the wiki is already loaded.
@@ -656,24 +498,98 @@ var addRoutes = function () {
     }
   })
 
-  wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
-    loadMediaFile(request, response)
-  })
-
   wiki.router.get('/:wikiName/favicon.ico', function (request, response) {
     // Add a check to make sure that the person logged in is authorised
     // to open the wiki.
-    var authorised = checkPermission(response, request.params.wikiName, 'view')
+    var authorised = checkPermission(request.params.wikiName, response, 'view')
     if (authorised) {
-      response.writeHead(200, {"Content-Type": "image/x-icon"});
-      var buffer = wiki.tw.wiki.getTiddlerText("{" + request.params.wikiName + "}" + "$:/favicon.ico","");
-      response.end(buffer,"base64");
+      response.writeHead(200, {"Content-Type": "image/x-icon"})
+      var buffer = wiki.tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
+      response.end(buffer,"base64")
+    } else {
+      response.writeHead(403)
+      response.end()
+    }
+  })
+
+  wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
+    loadMediaFile(request, response, request.params.wikiName)
+  })
+
+  wiki.router.get('/*/files/*', function (request, response) {
+    function findName(url) {
+      var pieces = url.split('/')
+      var name = pieces[0]
+      var settingsObj = wiki.tw.settings.wikis[name]
+      for (var i = 1; i < pieces.length; i++) {
+        if (typeof settingsObj[pieces[i]] === 'object') {
+          name = name + '/' + pieces[i]
+          settingsObj = settingsObj[pieces[i]]
+        } else if (typeof settingsObj[pieces[i]] === 'string') {
+          name = name + '/' + pieces[i]
+          break
+        } else {
+          break
+        }
+      }
+      return name
+    }
+    var wikiName = findName(request.url.slice(1))
+    var filePath = request.url.slice(7+wikiName.length)
+    request.params.wikiName = wikiName
+    request.params.filePath = filePath
+    loadMediaFile(request, response, wikiName)
+  })
+
+  wiki.router.get('/*/favicon.ico', function(request, response) {
+    var wikiName = request.url.slice(1, -12)
+    var authorised = checkPermission(wikiName, response, 'view')
+    if (authorised) {
+      response.writeHead(200, {"Content-Type": "image/x-icon"})
+      var buffer = wiki.tw.Bob.Wikis[request.params.wikiName].wiki.getTiddlerText("$:/favicon.ico","")
+      response.end(buffer,"base64")
+    } else {
+      response.writeHead(403)
+      response.end()
+    }
+  })
+
+  wiki.router.get('/*', function(request, response) {
+    var wikiName = request.url.slice(1)
+    var authorised = checkPermission(wikiName, response, 'view')
+    if (authorised) {
+      // Get wiki path
+      var nameParts = wikiName.split('/')
+      var pathsObject = wiki.tw.settings.wikis || {}
+      nameParts.forEach(function(part) {
+        pathsObject = pathsObject[part] || "";
+      })
+      // Make sure we have loaded the wiki tiddlers.
+      // This does nothing if the wiki is already loaded.
+      var exists = wiki.tw.ServerSide.loadWiki(wikiName, pathsObject);
+      if (exists) {
+        // If servePlugin is not false than we strip out the filesystem
+        // and tiddlyweb plugins if they are there and add in the
+        // multiuser plugin.
+        var servePlugin = !wiki.tw.settings['ws-server'].servePlugin || wiki.tw.settings['ws-server'].servePlugin !== false;
+        // Get the full text of the html wiki to send as the response.
+        var text = wiki.tw.ServerSide.prepareWiki(wikiName, servePlugin);
+      } else {
+        var text = "<html><p>No wiki found! Either there is no usable tiddlywiki.info file in the listed location or it isn't listed.</p></html>"
+      }
+      response.writeHead(200, {"Content-Type": "text/html"});
+      response.end(text,"utf8");
+    } else {
+      response.end(unauthorised, "utf8")
     }
   })
 }
 
-function loadMediaFile(request, response) {
-  var wikiName = request.params.wikiName;
+/*
+  This is used to load a media file from the server
+  It needs to be updated to support files for individual wikis
+*/
+function loadMediaFile(request, response, wikiName) {
   wiki.tw.settings.mimeMap = wiki.tw.settings.mimeMap || {
     '.aac': 'audio/aac',
     '.avi': 'video/x-msvideo',
@@ -697,11 +613,11 @@ function loadMediaFile(request, response) {
     '.webm': 'video/webm',
     '.wav': 'audio/wav'
   }
-  var authorised = checkPermission(response, wikiName, 'view')
+  var authorised = checkPermission(wikiName, response, 'view')
   if (authorised) {
     //Make sure that the file type is listed in the mimeMap
     if (wiki.tw.settings.mimeMap[path.extname(request.params.filePath).toLowerCase()]) {
-      var fileFolderPath = path.join(wiki.tw.Bob.Wikis[wikiName].wikiPath, 'files')
+      var fileFolderPath = path.resolve(wiki.tw.Bob.Wikis[wikiName].wikiPath, 'files')
       var file = path.join(fileFolderPath, request.params.filePath)
       // Make sure that there aren't any sneaky things like '../../../.ssh' in
       // the resolved file path.
@@ -758,12 +674,15 @@ addRoutes()
 */
 wiki.tw.ExternalServer = wiki.tw.ExternalServer || {}
 wiki.tw.ExternalServer.initialiseWikiSettings = function(name, data) {
-  localSettings = settings.Local
-  localSettings.wikis = localSettings.wikis || {}
-  localSettings.wikis[name] = {}
-  localSettings.wikis[name].public = data.public || false
-  localSettings.wikis[name].owner = data.decoded.name
-  settings.saveSetting(localSettings)
+  var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
+  var defaultPath = path.resolve(baseDir,settings.wikiPermissionsPath)
+  var localPath = path.resolve(baseDir,settings.localWikiPermissionsPath)
+  var localWikiPermissions = settings.loadConfig(defaultPath, localPath).local
+  localWikiPermissions.wikis = localWikiPermissions.wikis || {}
+  localWikiPermissions.wikis[name] = {}
+  localWikiPermissions.wikis[name].public = data.public || false
+  localWikiPermissions.wikis[name].owner = data.decoded.name
+  settings.saveSetting(localWikiPermissions, localPath)
 }
 
 // Here these two functions are placeholders, they don't do anything here.
@@ -774,6 +693,11 @@ wiki.tw.httpServer.addOtherRoutes = function () {
 }
 wiki.tw.httpServer.clearRoutes = function () {
   // Also does nothing!
+}
+
+// Set the access control function for Bob
+wiki.tw.Bob.AccessCheck = function(wikiName, token, action) {
+  return checkPermission(wikiName, token, action)
 }
 
 module.exports = wiki

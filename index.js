@@ -28,7 +28,7 @@ var cookieParser = require('cookie-parser')
 var settings = require('./LoadConfig.js')
 var baseDir = settings.filePathBase === 'homedir'?require('os').homedir():settings.filePathBase
 
-var wiki = require('./startWiki.js')
+var wiki = require('./wikiStart.js')
 
 var app = express()
 
@@ -41,20 +41,21 @@ app.use(cookieParser())
   or that the wiki in question is set to public
 */
 function checkAuthentication (req, res, next) {
+  var wikiPermissions = require('./js/checkPermissions.js').wikiPermissions
   var regexp = new RegExp(`^${req.baseUrl}\/?`)
   var wikiName = req.originalUrl.replace(regexp, '')
   if (wikiName === '') {
     wikiName = 'RootWiki'
   }
   // check if the wiki is public first
-  settings.wikis = settings.wikis || {}
-  settings.wikis[wikiName] = settings.wikis[wikiName] || {}
-  if (settings.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
+  wikiPermissions.wikis = wikiPermissions.wikis || {}
+  wikiPermissions.wikis[wikiName] = wikiPermissions.wikis[wikiName] || {}
+  if (wikiPermissions.wikis[wikiName].public || req.originalUrl.startsWith('/api/')) {
     return next()
   } else {
     // If the wiki isn't public than check if there is a valid token
     try {
-      var key = fs.readFileSync(path.join(require('os').homedir(), settings.tokenPrivateKeyPath))
+      var key = require('./js/loadSecrets.js')
       var decoded = jwt.verify(req.cookies.token, key)
       if (decoded) {
         // Add the decoded token to res object.
@@ -85,7 +86,7 @@ app.post('/authenticate', function (req, res) {
           // Check the headers against the username and password
           // Create the token for it
           // Sign the token using the rsa private key of the server
-          var key = fs.readFileSync(path.join(baseDir, settings.tokenPrivateKeyPath))
+          var key = require('./js/loadSecrets.js')
           var token = jwt.sign({level: info.level, name: req.body.name}, key, {expiresIn: settings.tokenTTL})
           res.status(200)
           // Send the token back
@@ -97,7 +98,7 @@ app.post('/authenticate', function (req, res) {
         res.status(403).send(false)
       }
     } catch (e) {
-      console.log(e)
+      console.log(`Could not authenticate ${req.body.name}`)
       res.status(400).send(false)
     }
   } else {

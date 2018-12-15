@@ -1,0 +1,11 @@
+[wikis]
+  [wikis.RootWiki]
+    # If this has a name that the person named is the owner and gets owner
+    # privileges
+    owner=false
+    # If this is true than the wiki is publicly viewable as a static wiki
+    public=true
+    [wikis.RootWiki.access]
+      Guest=["view"]
+      Normal=["view", "edit"]
+      Admin=["view", "edit", "admin", "upload"]
