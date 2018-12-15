@@ -512,11 +512,11 @@ var addRoutes = function () {
     }
   })
 
-  wiki.router.get('/files/:wikiName/:filePath', function (request, response) {
+  wiki.router.get('/:wikiName/files/:filePath', function (request, response) {
     loadMediaFile(request, response, request.params.wikiName)
   })
 
-  wiki.router.get('/files/*', function (request, response) {
+  wiki.router.get('/*/files/*', function (request, response) {
     function findName(url) {
       var pieces = url.split('/')
       var name = pieces[0]
@@ -534,7 +534,7 @@ var addRoutes = function () {
       }
       return name
     }
-    var wikiName = findName(request.url.slice(7))
+    var wikiName = findName(request.url.slice(1))
     var filePath = request.url.slice(7+wikiName.length)
     request.params.wikiName = wikiName
     request.params.filePath = filePath
