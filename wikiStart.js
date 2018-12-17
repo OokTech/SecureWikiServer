@@ -534,8 +534,9 @@ var addRoutes = function () {
       }
       return name
     }
-    var wikiName = findName(request.url.slice(1))
-    var filePath = request.url.slice(7+wikiName.length)
+    var wikiName = findName(request.url.replace(/^\//, ''))
+    var urlPieces = request.url.replace(/^\//, '').split('/')
+    var filePath = urlPieces.slice(urlPieces.indexOf('files')+1).join('/')
     request.params.wikiName = wikiName
     request.params.filePath = filePath
     loadMediaFile(request, response, wikiName)

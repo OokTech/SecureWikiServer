@@ -92,7 +92,7 @@ function handleMessage(event) {
       }
       var authorised = checkPermissions(eventData.wiki, {decoded: decoded}, false, eventData.type)
       if (authorised) {
-        eventData.decoded = authorised
+        eventData.decoded = decoded
         messageHandlers[eventData.type](eventData)
       }
       // If unauthorised just ignore it.
